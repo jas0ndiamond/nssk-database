@@ -68,3 +68,4 @@ else
 fi
 
 echo "Container startup completed. Move the config file and setup script to a secure location."
+
