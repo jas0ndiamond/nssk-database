@@ -24,7 +24,7 @@ Creates network 9.9.1.0
 
 ```
 cd nssk-data/docker
-./start
+./start.sh
 ```
 
 The MySQL database port is forwarded from 3306 to 23306 by default.
