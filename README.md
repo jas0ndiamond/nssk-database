@@ -27,7 +27,7 @@ cd nssk-data/docker
 ./start.sh
 ```
 
-The MySQL database port is forwarded from 3306 to 23306 by default.
+The MySQL database port set up to be forwarded by default.
 If the database is web-facing, configure router port-forwarding if necessary.
 
 ---

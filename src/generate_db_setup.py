@@ -89,16 +89,25 @@ conductivity_rainfall_correlation_sites = [
 #####################
 
 # Dockerfile and start.sh expect these files. do not make configurable
-scriptfile_target_dir = "../docker/database_setup/"
-create_db_scriptfile = "%s0_create_dbs.sql" % scriptfile_target_dir
-create_users_scriptfile = "%s1_create_users.sql" % scriptfile_target_dir
-create_nssk_cosmo_tables_scriptfile = "%s2_create_nssk_cosmo_tables.sql" % scriptfile_target_dir
-create_cnv_flowworks_tables_scriptfile = "%s3_create_cnv_flowworks_tables.sql" % scriptfile_target_dir
-create_dnv_flowworks_tables_scriptfile = "%s4_create_dnv_flowworks_tables.sql" % scriptfile_target_dir
-create_conductivity_rainfall_correlation_tables_scriptfile = "%s5_create_conductivity_rainfall_correlation_tables.sql" % scriptfile_target_dir
-create_rainfall_event_data_tables_scriptfile = "%s6_create_rainfall_event_data_tables.sql" % scriptfile_target_dir
+# TODO: check path exists
+# TODO: switch to ../ from this file's location
+# TODO: create project root from this file's location
+project_root =".."
+scriptfile_target_dir = "%s/database_setup" % project_root
 
-create_mysql_root_cred_file = "%smysql.txt" % scriptfile_target_dir
+
+create_db_scriptfile = "%s/0_create_dbs.sql" % scriptfile_target_dir
+create_users_scriptfile = "%s/1_create_users.sql" % scriptfile_target_dir
+create_nssk_cosmo_tables_scriptfile = "%s/2_create_nssk_cosmo_tables.sql" % scriptfile_target_dir
+create_cnv_flowworks_tables_scriptfile = "%s/3_create_cnv_flowworks_tables.sql" % scriptfile_target_dir
+create_dnv_flowworks_tables_scriptfile = "%s/4_create_dnv_flowworks_tables.sql" % scriptfile_target_dir
+create_conductivity_rainfall_correlation_tables_scriptfile = "%s/5_create_conductivity_rainfall_correlation_tables.sql" % scriptfile_target_dir
+create_rainfall_event_data_tables_scriptfile = "%s/6_create_rainfall_event_data_tables.sql" % scriptfile_target_dir
+create_waterranges_tables_scriptfile = "%s/7_create_waterrangers_tables.sql" % scriptfile_target_dir
+create_chloride_report_tables_scriptfile = "%s/8_create_chloride_report_tables.sql" % scriptfile_target_dir
+
+
+create_mysql_root_cred_file = "%s/mysql.txt" % scriptfile_target_dir
 
 #####################
 
@@ -341,7 +350,7 @@ def limit_remote_root_login():
 
 
 def setup_cosmo_tables():
-    table_template = Template(open("sql/CoSMo/nssk-cosmo-sensor-table.sql.template").read())
+    table_template = Template(open("%s/setup/sql/CoSMo/nssk-cosmo-sensor-table.sql.template" % project_root).read())
 
     # set the database to create the tables in
     create_nssk_cosmo_tables.append("use %s;" % NSSK_COSMO_DB)
@@ -352,7 +361,7 @@ def setup_cosmo_tables():
 
 
 def setup_cnv_flowworks_tables():
-    table_template = Template(open("sql/cnv-flowworks/nssk-cnv-flowworks.sql.template").read())
+    table_template = Template(open("%s/setup/sql/cnv-flowworks/nssk-cnv-flowworks.sql.template" % project_root).read())
 
     # set the database to create the tables in
     create_cnv_flowworks_tables.append("use %s;" % NSSK_CNV_FLOWWORKS_DB)
@@ -363,7 +372,7 @@ def setup_cnv_flowworks_tables():
 
 
 def setup_dnv_flowworks_tables():
-    table_template = Template(open("sql/dnv-flowworks/nssk-dnv-flowworks.sql.template").read())
+    table_template = Template(open("%s/setup/sql/dnv-flowworks/nssk-dnv-flowworks.sql.template" % project_root).read())
 
     # set the database to create the tables in
     create_dnv_flowworks_tables.append("use %s;" % NSSK_DNV_FLOWWORKS_DB)
@@ -378,7 +387,7 @@ def setup_conductivity_rainfall_correlation_tables():
     create_conductivity_rainfall_correlation_tables.append("use %s;" % NSSK_CONDUCTIVITY_RAINFALL_CORRELATION_DB)
 
     table_template = Template(open(
-        "sql/conductivity-rainfall-correlation/conductivity-rainfall-correlation.sql.template").read())
+        "%s/setup/sql/conductivity-rainfall-correlation/conductivity-rainfall-correlation.sql.template" % project_root).read())
 
     for monitoring_location_id in conductivity_rainfall_correlation_sites:
         create_table_sql = table_template.substitute(MONITORING_LOCATION_ID=monitoring_location_id)
@@ -390,12 +399,12 @@ def setup_rainfall_event_data_tables():
     create_rainfall_event_data_tables.append("use %s;" % NSSK_RAINFALL_EVENT_DATA_DB)
 
     # table for rainfall events. nothing to substitute
-    with open("sql/rainfall-event-data/rainfall-events.sql.template", 'r') as reader:
+    with open("%s/setup/sql/rainfall-event-data/rainfall-events.sql.template" % project_root, 'r') as reader:
         create_rainfall_event_data_tables.append("".join(reader.readlines()))
 
     # event data tables for each site
     table_template = Template(open(
-        "sql/rainfall-event-data/rainfall-event-data.sql.template").read())
+        "%s/setup/sql/rainfall-event-data/rainfall-event-data.sql.template" % project_root).read())
 
     for monitoring_location_id in rainfall_sites:
         create_table_sql = table_template.substitute(MONITORING_LOCATION_ID=monitoring_location_id)
