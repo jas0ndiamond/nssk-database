@@ -21,13 +21,15 @@ NSSK_DNV_FLOWWORKS_DB = "NSSK_DNV_FLOWWORKS"
 NSSK_CNV_FLOWWORKS_DB = "NSSK_CNV_FLOWWORKS"
 NSSK_CONDUCTIVITY_RAINFALL_CORRELATION_DB = "NSSK_CONDUCTIVITY_RAINFALL_CORRELATION"
 NSSK_RAINFALL_EVENT_DATA_DB = "NSSK_RAINFALL_EVENT_DATA"
+NSSK_WATERRANGERS_DB = "NSSK_WATERRANGERS"
 
 DATABASES = [
     NSSK_COSMO_DB,
     NSSK_DNV_FLOWWORKS_DB,
     NSSK_CNV_FLOWWORKS_DB,
     NSSK_CONDUCTIVITY_RAINFALL_CORRELATION_DB,
-    NSSK_RAINFALL_EVENT_DATA_DB
+    NSSK_RAINFALL_EVENT_DATA_DB,
+    NSSK_WATERRANGERS_DB
 ]
 
 NETWORK_KEY = "network"
@@ -86,6 +88,26 @@ conductivity_rainfall_correlation_sites = [
     "WAGG03"
 ]
 
+waterrangers_sites = [
+    "WAG_E_01",
+    "WAG_E_02",
+    "WAG_E_03",
+    "WAG_E_05",
+    "WAG_E_06a",
+    "WAG_E_06b",
+    "WAG_E_07",
+    "WAG_M_01",
+    "WAG_M_02",
+    "WAG_M_03",
+    "MIS_M_01",
+    "MIS_E_01",
+    "MIS_W_01",
+    "WAG_W_02a",
+    "WAG_W_02b",
+    "WAG_W_03",
+    "MOS_M_01"
+]
+
 #####################
 
 # Dockerfile and start.sh expect these files. do not make configurable
@@ -103,7 +125,7 @@ create_cnv_flowworks_tables_scriptfile = "%s/3_create_cnv_flowworks_tables.sql" 
 create_dnv_flowworks_tables_scriptfile = "%s/4_create_dnv_flowworks_tables.sql" % scriptfile_target_dir
 create_conductivity_rainfall_correlation_tables_scriptfile = "%s/5_create_conductivity_rainfall_correlation_tables.sql" % scriptfile_target_dir
 create_rainfall_event_data_tables_scriptfile = "%s/6_create_rainfall_event_data_tables.sql" % scriptfile_target_dir
-create_waterranges_tables_scriptfile = "%s/7_create_waterrangers_tables.sql" % scriptfile_target_dir
+create_waterrangers_tables_scriptfile = "%s/7_create_waterrangers_tables.sql" % scriptfile_target_dir
 create_chloride_report_tables_scriptfile = "%s/8_create_chloride_report_tables.sql" % scriptfile_target_dir
 
 
@@ -120,7 +142,7 @@ create_dnv_flowworks_tables = []
 create_conductivity_rainfall_correlation_tables = []
 create_rainfall_events_tables = []
 create_rainfall_event_data_tables = []
-
+create_waterrangers_tables = []
 
 #############################
 
@@ -165,6 +187,11 @@ def write_setup_scripts():
           create_rainfall_event_data_tables_scriptfile)
     with open(create_rainfall_event_data_tables_scriptfile, 'w') as handle:
         handle.writelines("%s\n" % line for line in create_rainfall_event_data_tables)
+
+    print("Writing Waterrangers table setup script to %s" %
+          create_waterrangers_tables_scriptfile)
+    with open(create_waterrangers_tables_scriptfile, 'w') as handle:
+        handle.writelines("%s\n" % line for line in create_waterrangers_tables)
 
     print("Writing setup script completed")
 
@@ -411,8 +438,17 @@ def setup_rainfall_event_data_tables():
         create_rainfall_event_data_tables.append(create_table_sql)
 
 
-def setup_container_startup_script():
-    pass
+def setup_waterrangers_tables():
+    # set the database to create the tables in
+    create_waterrangers_tables.append("use %s;" % NSSK_WATERRANGERS_DB)
+
+    # event data tables for each site
+    table_template = Template(open(
+        "%s/setup/sql/waterrangers/waterrangers-site.sql.template" % project_root).read())
+
+    for site in waterrangers_sites:
+        create_table_sql = table_template.substitute(SITE=site)
+        create_waterrangers_tables.append(create_table_sql)
 
 
 # this may not be necessary any more
@@ -518,9 +554,9 @@ def main(args):
     setup_rainfall_event_data_tables()
     print("Rainfall Event Data tables completed")
 
-    print("Generating Container startup script")
-    setup_container_startup_script()
-    print("Container startup script generation completed")
+    print("Creating Waterrangers tables")
+    setup_waterrangers_tables()
+    print("Waterrangers tables completed")
 
     ###########
     # write our setup script files

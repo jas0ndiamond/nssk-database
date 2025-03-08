@@ -14,6 +14,7 @@ ADD ./database_setup/3_create_cnv_flowworks_tables.sql /docker-entrypoint-initdb
 ADD ./database_setup/4_create_dnv_flowworks_tables.sql /docker-entrypoint-initdb.d
 ADD ./database_setup/5_create_conductivity_rainfall_correlation_tables.sql /docker-entrypoint-initdb.d
 ADD ./database_setup/6_create_rainfall_event_data_tables.sql /docker-entrypoint-initdb.d
+ADD ./database_setup/7_create_waterrangers_tables.sql /docker-entrypoint-initdb.d
 ADD ./database_setup/mysql.txt /
 
 # fail2ban config for mysql
