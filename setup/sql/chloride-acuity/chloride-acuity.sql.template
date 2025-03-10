@@ -1,0 +1,11 @@
+# field precision should be consistent with ResultValue source field in cosmo database
+
+CREATE TABLE $SITE (
+    MeasurementTimeStamp DATETIME,
+    SpecificConductance FLOAT,
+    TemperatureWater FLOAT,
+    WaterLevel FLOAT
+);
+
+ALTER TABLE $SITE ADD UNIQUE measurementtimestamp (MeasurementTimeStamp);
+ALTER TABLE $SITE ADD PRIMARY KEY (MeasurementTimeStamp);
