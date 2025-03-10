@@ -27,7 +27,6 @@ fi
 # fail2ban/fail2ban.conf
 F2B_CONF_FILE="$PROJECT_ROOT/fail2ban/fail2ban.conf"
 F2B_JAIL_FILE="$PROJECT_ROOT/fail2ban/jail.local"
-F2B_PATHS_FILE="$PROJECT_ROOT/fail2ban/paths-common.conf"
 if [ ! -f "$F2B_CONF_FILE" ]; then
   echo "Missing fail2ban conf file $F2B_CONF_FILE"
   exit 1
@@ -36,12 +35,6 @@ fi
 # fail2ban/jail.local
 if [ ! -f "$F2B_JAIL_FILE" ]; then
   echo "Missing fail2ban jail file $F2B_JAIL_FILE"
-  exit 1
-fi
-
-# fail2ban/paths-common.conf
-if [ ! -f "$F2B_PATHS_FILE" ]; then
-  echo "Missing fail2ban paths file $F2B_PATHS_FILE"
   exit 1
 fi
 
