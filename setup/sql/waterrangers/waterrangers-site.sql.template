@@ -1,5 +1,5 @@
 # not using 'notes' field for now - security risk and not likely used in data analysis
-# there seem to be 2 dissolved_organic_carbon fields in the dumps, the second one is suffixed with 2 here
+# there seem to be 2 dissolved_organic_carbon fields in the dumps. they dont appear to be used so they are not captured in the db schema
 
 CREATE TABLE $SITE (
     ObservedOn DATETIME,
@@ -14,7 +14,7 @@ CREATE TABLE $SITE (
     Ph DECIMAL(9,6),
     Clarity DECIMAL(9,6),
     Nitrites DECIMAL(9,6),
-    Conductivity DECIMAL(9,6),
+    Conductivity DECIMAL(10,6),
     Alkalinity DECIMAL(9,6),
     Turbidity DECIMAL(9,6),
     Hardness DECIMAL(9,6),
@@ -29,6 +29,7 @@ CREATE TABLE $SITE (
     BiochemicalOxygenDemand DECIMAL(9,6),
     TotalSuspendedSolids DECIMAL(9,6),
     IncubationTime DECIMAL(9,6),
+    IncubationTemperature DECIMAL(9,6),
     OxygenPercent DECIMAL(9,6),
     Enterococci DECIMAL(9,6),
     WaterFlow DECIMAL(9,6),
@@ -46,9 +47,8 @@ CREATE TABLE $SITE (
     AirTemperature DECIMAL(9,6),
     Salinity DECIMAL(9,6),
     Taxa DECIMAL(9,6),
+    Civ DECIMAL(9,6),
     TotalDissolvedSolids DECIMAL(9,6),
-    DissolvedOrganicCarbon DECIMAL(9,6),
-    DissolvedOrganicCarbon2 DECIMAL(9,6),
     Ammonia DECIMAL(9,6),
     Ecoli DECIMAL(9,6)
 );
