@@ -22,7 +22,6 @@ NSSK_CNV_FLOWWORKS_DB = "NSSK_CNV_FLOWWORKS"
 NSSK_CONDUCTIVITY_RAINFALL_CORRELATION_DB = "NSSK_CONDUCTIVITY_RAINFALL_CORRELATION"
 NSSK_RAINFALL_EVENT_DATA_DB = "NSSK_RAINFALL_EVENT_DATA"
 NSSK_WATERRANGERS_DB = "NSSK_WATERRANGERS"
-NSSK_CHLORIDE_ACUITY_DB = "NSSK_CHLORIDE_ACUITY"
 NSSK_CNV_HYDROMETRIC_DB = "NSSK_CNV_HYDROMETRIC"
 
 DATABASES = [
@@ -32,7 +31,6 @@ DATABASES = [
     NSSK_CONDUCTIVITY_RAINFALL_CORRELATION_DB,
     NSSK_RAINFALL_EVENT_DATA_DB,
     NSSK_WATERRANGERS_DB,
-    NSSK_CHLORIDE_ACUITY_DB,
     NSSK_CNV_HYDROMETRIC_DB
 ]
 
@@ -112,11 +110,6 @@ waterrangers_sites = [
     "MOS_M_01"
 ]
 
-chloride_acuity_sites = [
-    "WAGG01",
-    "WAGG03"
-]
-
 cnv_hydrometric_sites = [
     "WaggCreek"
 ]
@@ -138,8 +131,7 @@ create_dnv_flowworks_tables_scriptfile = "%s/4_create_dnv_flowworks_tables.sql" 
 create_conductivity_rainfall_correlation_tables_scriptfile = "%s/5_create_conductivity_rainfall_correlation_tables.sql" % scriptfile_target_dir
 create_rainfall_event_data_tables_scriptfile = "%s/6_create_rainfall_event_data_tables.sql" % scriptfile_target_dir
 create_waterrangers_tables_scriptfile = "%s/7_create_waterrangers_tables.sql" % scriptfile_target_dir
-create_chloride_acuity_tables_scriptfile = "%s/8_create_chloride_acuity_tables.sql" % scriptfile_target_dir
-create_cnv_hydrometric_tables_scriptfile = "%s/9_create_cnv_hydrometric_tables.sql" % scriptfile_target_dir
+create_cnv_hydrometric_tables_scriptfile = "%s/8_create_cnv_hydrometric_tables.sql" % scriptfile_target_dir
 
 create_mysql_root_cred_file = "%s/mysql.txt" % scriptfile_target_dir
 
@@ -155,7 +147,6 @@ create_conductivity_rainfall_correlation_tables = []
 create_rainfall_events_tables = []
 create_rainfall_event_data_tables = []
 create_waterrangers_tables = []
-create_chloride_acuity_tables = []
 create_cnv_hydrometric_tables = []
 
 #############################
@@ -206,11 +197,6 @@ def write_setup_scripts():
           create_waterrangers_tables_scriptfile)
     with open(create_waterrangers_tables_scriptfile, 'w') as handle:
         handle.writelines("%s\n" % line for line in create_waterrangers_tables)
-
-    print("Writing Chloride Acuity table setup script to %s" %
-          create_chloride_acuity_tables_scriptfile)
-    with open(create_chloride_acuity_tables_scriptfile, 'w') as handle:
-        handle.writelines("%s\n" % line for line in create_chloride_acuity_tables)
 
     print("Writing CNV Hydrometric table setup script to %s" %
           create_cnv_hydrometric_tables_scriptfile)
@@ -474,16 +460,6 @@ def setup_waterrangers_tables():
         create_table_sql = table_template.substitute(SITE=site)
         create_waterrangers_tables.append(create_table_sql)
 
-def setup_chloride_acuity_tables():
-    table_template = Template(open("%s/setup/sql/chloride-acuity/chloride-acuity.sql.template" % project_root).read())
-
-    # set the database to create the tables in
-    create_chloride_acuity_tables.append("use %s;" % NSSK_CHLORIDE_ACUITY_DB)
-
-    for site in chloride_acuity_sites:
-        create_table_sql = table_template.substitute(SITE=site)
-        create_chloride_acuity_tables.append(create_table_sql)
-
 def setup_cnv_hydrometric_tables():
     table_template = Template(open("%s/setup/sql/cnv-hydrometric/cnv-hydrometric.sql.template" % project_root).read())
 
@@ -606,10 +582,6 @@ def main(args):
     print("Creating Rainfall Event Data tables")
     setup_rainfall_event_data_tables()
     print("Rainfall Event Data tables completed")
-
-    print("Creating Chloride Acuity tables")
-    setup_chloride_acuity_tables()
-    print("Chloride Acuity tables completed")
 
     ###########
     # write our setup script files
