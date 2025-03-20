@@ -32,8 +32,8 @@ else
 fi
 
 # purge database state
-sudo rm -rf ./mysql/data
-sudo rm -rf ./mysql/log
+sudo rm -rf ./data/*
+sudo rm -rf ./mysql/*
 
 # run regular deploy
-./deploy.sh "$CONFIG_FILE"
+./deploy.sh $CONFIG_FILE
