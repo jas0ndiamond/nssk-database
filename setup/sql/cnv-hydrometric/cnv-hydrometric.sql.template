@@ -1,8 +1,0 @@
-CREATE TABLE $SITE (
-    MeasurementTimeStamp DATETIME,
-    PrelimaryDischarge FLOAT,
-    RevisedFinalStage FLOAT
-);
-
-ALTER TABLE $SITE ADD UNIQUE measurementtimestamp (MeasurementTimeStamp);
-ALTER TABLE $SITE ADD PRIMARY KEY (MeasurementTimeStamp);

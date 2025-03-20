@@ -21,17 +21,13 @@ NSSK_DNV_FLOWWORKS_DB = "NSSK_DNV_FLOWWORKS"
 NSSK_CNV_FLOWWORKS_DB = "NSSK_CNV_FLOWWORKS"
 NSSK_CONDUCTIVITY_RAINFALL_CORRELATION_DB = "NSSK_CONDUCTIVITY_RAINFALL_CORRELATION"
 NSSK_RAINFALL_EVENT_DATA_DB = "NSSK_RAINFALL_EVENT_DATA"
-NSSK_WATERRANGERS_DB = "NSSK_WATERRANGERS"
-NSSK_CNV_HYDROMETRIC_DB = "NSSK_CNV_HYDROMETRIC"
 
 DATABASES = [
     NSSK_COSMO_DB,
     NSSK_DNV_FLOWWORKS_DB,
     NSSK_CNV_FLOWWORKS_DB,
     NSSK_CONDUCTIVITY_RAINFALL_CORRELATION_DB,
-    NSSK_RAINFALL_EVENT_DATA_DB,
-    NSSK_WATERRANGERS_DB,
-    NSSK_CNV_HYDROMETRIC_DB
+    NSSK_RAINFALL_EVENT_DATA_DB
 ]
 
 NETWORK_KEY = "network"
@@ -90,50 +86,19 @@ conductivity_rainfall_correlation_sites = [
     "WAGG03"
 ]
 
-waterrangers_sites = [
-    "WAG_E_01",
-    "WAG_E_02",
-    "WAG_E_03",
-    "WAG_E_05",
-    "WAG_E_06a",
-    "WAG_E_06b",
-    "WAG_E_07",
-    "WAG_M_01",
-    "WAG_M_02",
-    "WAG_M_03",
-    "MIS_M_01",
-    "MIS_E_01",
-    "MIS_W_01",
-    "WAG_W_02a",
-    "WAG_W_02b",
-    "WAG_W_03",
-    "MOS_M_01"
-]
-
-cnv_hydrometric_sites = [
-    "WaggCreek"
-]
-
 #####################
 
 # Dockerfile and start.sh expect these files. do not make configurable
-# TODO: check path exists
-# TODO: switch to ../ from this file's location
-# TODO: create project root from this file's location
-project_root =".."
-scriptfile_target_dir = "%s/database_setup" % project_root
+scriptfile_target_dir = "../docker/database_setup/"
+create_db_scriptfile = "%s0_create_dbs.sql" % scriptfile_target_dir
+create_users_scriptfile = "%s1_create_users.sql" % scriptfile_target_dir
+create_nssk_cosmo_tables_scriptfile = "%s2_create_nssk_cosmo_tables.sql" % scriptfile_target_dir
+create_cnv_flowworks_tables_scriptfile = "%s3_create_cnv_flowworks_tables.sql" % scriptfile_target_dir
+create_dnv_flowworks_tables_scriptfile = "%s4_create_dnv_flowworks_tables.sql" % scriptfile_target_dir
+create_conductivity_rainfall_correlation_tables_scriptfile = "%s5_create_conductivity_rainfall_correlation_tables.sql" % scriptfile_target_dir
+create_rainfall_event_data_tables_scriptfile = "%s6_create_rainfall_event_data_tables.sql" % scriptfile_target_dir
 
-create_db_scriptfile = "%s/0_create_dbs.sql" % scriptfile_target_dir
-create_users_scriptfile = "%s/1_create_users.sql" % scriptfile_target_dir
-create_nssk_cosmo_tables_scriptfile = "%s/2_create_nssk_cosmo_tables.sql" % scriptfile_target_dir
-create_cnv_flowworks_tables_scriptfile = "%s/3_create_cnv_flowworks_tables.sql" % scriptfile_target_dir
-create_dnv_flowworks_tables_scriptfile = "%s/4_create_dnv_flowworks_tables.sql" % scriptfile_target_dir
-create_conductivity_rainfall_correlation_tables_scriptfile = "%s/5_create_conductivity_rainfall_correlation_tables.sql" % scriptfile_target_dir
-create_rainfall_event_data_tables_scriptfile = "%s/6_create_rainfall_event_data_tables.sql" % scriptfile_target_dir
-create_waterrangers_tables_scriptfile = "%s/7_create_waterrangers_tables.sql" % scriptfile_target_dir
-create_cnv_hydrometric_tables_scriptfile = "%s/8_create_cnv_hydrometric_tables.sql" % scriptfile_target_dir
-
-create_mysql_root_cred_file = "%s/mysql.txt" % scriptfile_target_dir
+create_mysql_root_cred_file = "%smysql.txt" % scriptfile_target_dir
 
 #####################
 
@@ -146,8 +111,7 @@ create_dnv_flowworks_tables = []
 create_conductivity_rainfall_correlation_tables = []
 create_rainfall_events_tables = []
 create_rainfall_event_data_tables = []
-create_waterrangers_tables = []
-create_cnv_hydrometric_tables = []
+
 
 #############################
 
@@ -192,16 +156,6 @@ def write_setup_scripts():
           create_rainfall_event_data_tables_scriptfile)
     with open(create_rainfall_event_data_tables_scriptfile, 'w') as handle:
         handle.writelines("%s\n" % line for line in create_rainfall_event_data_tables)
-
-    print("Writing Waterrangers table setup script to %s" %
-          create_waterrangers_tables_scriptfile)
-    with open(create_waterrangers_tables_scriptfile, 'w') as handle:
-        handle.writelines("%s\n" % line for line in create_waterrangers_tables)
-
-    print("Writing CNV Hydrometric table setup script to %s" %
-          create_cnv_hydrometric_tables_scriptfile)
-    with open(create_cnv_hydrometric_tables_scriptfile, 'w') as handle:
-        handle.writelines("%s\n" % line for line in create_cnv_hydrometric_tables)
 
     print("Writing setup script completed")
 
@@ -387,7 +341,7 @@ def limit_remote_root_login():
 
 
 def setup_cosmo_tables():
-    table_template = Template(open("%s/setup/sql/CoSMo/nssk-cosmo-sensor-table.sql.template" % project_root).read())
+    table_template = Template(open("sql/CoSMo/nssk-cosmo-sensor-table.sql.template").read())
 
     # set the database to create the tables in
     create_nssk_cosmo_tables.append("use %s;" % NSSK_COSMO_DB)
@@ -398,7 +352,7 @@ def setup_cosmo_tables():
 
 
 def setup_cnv_flowworks_tables():
-    table_template = Template(open("%s/setup/sql/cnv-flowworks/nssk-cnv-flowworks.sql.template" % project_root).read())
+    table_template = Template(open("sql/cnv-flowworks/nssk-cnv-flowworks.sql.template").read())
 
     # set the database to create the tables in
     create_cnv_flowworks_tables.append("use %s;" % NSSK_CNV_FLOWWORKS_DB)
@@ -409,7 +363,7 @@ def setup_cnv_flowworks_tables():
 
 
 def setup_dnv_flowworks_tables():
-    table_template = Template(open("%s/setup/sql/dnv-flowworks/nssk-dnv-flowworks.sql.template" % project_root).read())
+    table_template = Template(open("sql/dnv-flowworks/nssk-dnv-flowworks.sql.template").read())
 
     # set the database to create the tables in
     create_dnv_flowworks_tables.append("use %s;" % NSSK_DNV_FLOWWORKS_DB)
@@ -424,7 +378,7 @@ def setup_conductivity_rainfall_correlation_tables():
     create_conductivity_rainfall_correlation_tables.append("use %s;" % NSSK_CONDUCTIVITY_RAINFALL_CORRELATION_DB)
 
     table_template = Template(open(
-        "%s/setup/sql/conductivity-rainfall-correlation/conductivity-rainfall-correlation.sql.template" % project_root).read())
+        "sql/conductivity-rainfall-correlation/conductivity-rainfall-correlation.sql.template").read())
 
     for monitoring_location_id in conductivity_rainfall_correlation_sites:
         create_table_sql = table_template.substitute(MONITORING_LOCATION_ID=monitoring_location_id)
@@ -436,39 +390,21 @@ def setup_rainfall_event_data_tables():
     create_rainfall_event_data_tables.append("use %s;" % NSSK_RAINFALL_EVENT_DATA_DB)
 
     # table for rainfall events. nothing to substitute
-    with open("%s/setup/sql/rainfall-event-data/rainfall-events.sql.template" % project_root, 'r') as reader:
+    with open("sql/rainfall-event-data/rainfall-events.sql.template", 'r') as reader:
         create_rainfall_event_data_tables.append("".join(reader.readlines()))
 
     # event data tables for each site
     table_template = Template(open(
-        "%s/setup/sql/rainfall-event-data/rainfall-event-data.sql.template" % project_root).read())
+        "sql/rainfall-event-data/rainfall-event-data.sql.template").read())
 
     for monitoring_location_id in rainfall_sites:
         create_table_sql = table_template.substitute(MONITORING_LOCATION_ID=monitoring_location_id)
         create_rainfall_event_data_tables.append(create_table_sql)
 
 
-def setup_waterrangers_tables():
-    # set the database to create the tables in
-    create_waterrangers_tables.append("use %s;" % NSSK_WATERRANGERS_DB)
+def setup_container_startup_script():
+    pass
 
-    # event data tables for each site
-    table_template = Template(open(
-        "%s/setup/sql/waterrangers/waterrangers-site.sql.template" % project_root).read())
-
-    for site in waterrangers_sites:
-        create_table_sql = table_template.substitute(SITE=site)
-        create_waterrangers_tables.append(create_table_sql)
-
-def setup_cnv_hydrometric_tables():
-    table_template = Template(open("%s/setup/sql/cnv-hydrometric/cnv-hydrometric.sql.template" % project_root).read())
-
-    # set the database to create the tables in
-    create_cnv_hydrometric_tables.append("use %s;" % NSSK_CNV_HYDROMETRIC_DB)
-
-    for site in cnv_hydrometric_sites:
-        create_table_sql = table_template.substitute(SITE=site)
-        create_cnv_hydrometric_tables.append(create_table_sql)
 
 # this may not be necessary any more
 # def setup_root_container_login():
@@ -533,6 +469,10 @@ def main(args):
     create_databases()
     print("NSSK databases created")
 
+    print("Creating NSSK root password file")
+    create_root_pw_file()
+    print("NSSK root password file created")
+
     # create users and apply permissions for users
     print("Creating NSSK users")
     configure_users()
@@ -557,16 +497,6 @@ def main(args):
     setup_cnv_flowworks_tables()
     print("CNV Rainfall tables completed")
 
-    # create waterrangers tables
-    print("Creating Waterrangers tables")
-    setup_waterrangers_tables()
-    print("Waterrangers tables completed")
-
-    # create cnv hydrometric tables
-    print("Creating CNV Hydrometric tables")
-    setup_cnv_hydrometric_tables()
-    print("CNV Hydrometric tables completed")
-
     ###########
     # Generative and computed datasets
 
@@ -579,14 +509,13 @@ def main(args):
     setup_rainfall_event_data_tables()
     print("Rainfall Event Data tables completed")
 
+    print("Generating Container startup script")
+    setup_container_startup_script()
+    print("Container startup script generation completed")
+
     ###########
     # write our setup script files
     write_setup_scripts()
-
-    # write the password file
-    print("Creating NSSK root password file")
-    create_root_pw_file()
-    print("NSSK root password file created")
 
     print("Setup completed. Move your credentials file to a secure location.")
 
