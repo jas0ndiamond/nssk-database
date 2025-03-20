@@ -4,39 +4,47 @@ Stand up a containerized database to house NSSK data imported from its various s
 
 ---
 
-### Build Container
+### Setup
 
-```
-cd nssk-database
-./build.sh /path/to/config.json
-```
-
-### Start Container
-
-Create root pw file
-
-Creates network 9.9.1.0
-
-
-
-```
-cd nssk-database
-./start.sh /path/to/config.json
-```
-
-The MySQL database port set up to be forwarded by default.
-If the database is web-facing, configure router port-forwarding if necessary.
+* Create db config file from the template in `nssk-database/setup/conf/db-setup.json.template`
+* Create fail2ban config files (`fail2ban.conf`, `jail.local`) and copy to `nssk-database/fail2ban`
 
 ---
 
-### Purge
-
-Purges database state and spins up a new, empty database.
+### Stop a running container
 
 ```
-cd nssk-database
-./redeploy.sh /path/to/config.json
+docker stop nssk-database
 ```
+
+---
+
+### Start an already-built container
+
+```
+docker start nssk-database
+```
+
+---
+
+### Scripts
+
+Deploy the database. Builds the image and runs the container.
+
+`./deploy.sh /path/to/config.json`
+
+Deploy a fresh instance of the database. Stops a running database and purges existing state. Builds the image and runs the container.
+
+`./redeploy.sh /path/to/config.json`
+
+---
+
+### Notes
+
+* The container creates network 9.9.1.0
+* The MySQL database port set up to be forwarded from 22306 by default.
+* If the database is web-facing, configure router port-forwarding if necessary.
+* If a container is stopped with `docker stop nssk-database`, it should be started with `docker start nssk-database`. 
 
 ---
 
