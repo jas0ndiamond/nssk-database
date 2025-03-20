@@ -1,15 +1,17 @@
 setup/conf/*.json
 
-data/
-
-mysql/
+mysql/data/
+mysql/log/
+mysql/conf.d/*.cnf
 
 utils/push.sh
 
 database_setup/
 
-conf.d/
-
 fail2ban/
 
 backup/conf/*.json
+
+venv
+
+.idea
