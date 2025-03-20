@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PROJECT_ROOT="$(dirname "$(readlink -f "$0")")"
+
 CONFIG_FILE=$1
 
 if [ -z "$CONFIG_FILE" ]; then
@@ -27,6 +29,43 @@ fi
 IMAGE_NAME="$(jq -r '."image_name"' < "$CONFIG_FILE")"
 if [ -z "$IMAGE_NAME" ]; then
   echo "image_name not readable from config"
+  exit 1
+fi
+
+##################################
+# file resource checks - viable files created outright, from templates, or from the generation process
+# fail2ban/fail2ban.conf
+F2B_CONF_FILE="$PROJECT_ROOT/fail2ban/fail2ban.conf"
+F2B_JAIL_FILE="$PROJECT_ROOT/fail2ban/jail.local"
+if [ ! -f "$F2B_CONF_FILE" ]; then
+  echo "Missing fail2ban conf file $F2B_CONF_FILE"
+  exit 1
+fi
+
+# fail2ban/jail.local
+if [ ! -f "$F2B_JAIL_FILE" ]; then
+  echo "Missing fail2ban jail file $F2B_JAIL_FILE"
+  exit 1
+fi
+
+# conf.d/nssk.cnf
+# require this as it enables logging for fail2ban
+DB_CONFD_DIR="$PROJECT_ROOT/mysql/conf.d"
+if [ ! -d "$DB_CONFD_DIR" ]; then
+  echo "Missing database custom confd directory $DB_CONFD_DIR"
+  exit 1
+fi
+
+NSSK_DB_CUSTOM_CONF_FILE="$DB_CONFD_DIR/nssk.cnf"
+if [ ! -f "$NSSK_DB_CUSTOM_CONF_FILE" ]; then
+  echo "Missing mysql custom confd file $NSSK_DB_CUSTOM_CONF_FILE"
+  exit 1
+fi
+
+# check database_setup directory. can't build image without these resources
+DB_SETUP_SCRIPT_DIR="$PROJECT_ROOT/database_setup"
+if [ ! -d "$DB_SETUP_SCRIPT_DIR" ]; then
+  echo "Missing database setup scripts directory $DB_SETUP_SCRIPT_DIR. Make sure generate_db_setup.py has been executed."
   exit 1
 fi
 

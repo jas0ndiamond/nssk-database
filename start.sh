@@ -242,6 +242,7 @@ echo "Starting fail2ban" &&
 docker exec -it "$CONTAINER_NAME" /etc/init.d/fail2ban start &&
 sleep 10 &&
 docker exec -it "$CONTAINER_NAME" /etc/init.d/fail2ban status &&
+docker exec -it "$CONTAINER_NAME" /usr/bin/fail2ban-client status &&
 echo "Removing setup script from container filesystem" &&
 docker exec -it "$CONTAINER_NAME" rm -v /docker-entrypoint-initdb.d/1_create_users.sql &&
 
