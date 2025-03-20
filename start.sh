@@ -8,6 +8,8 @@
 
 ########################
 
+PROJECT_ROOT="$(dirname "$(readlink -f "$0")")"
+
 CONFIG_FILE=$1
 
 if [ -z "$CONFIG_FILE" ]; then
@@ -17,6 +19,43 @@ fi
 
 if [ ! -f "$CONFIG_FILE" ]; then
   echo "Missing config file '$CONFIG_FILE'. Create this file from the template."
+  exit 1
+fi
+
+##################################
+# file resource checks - viable files created outright, from templates, or from the generation process
+# fail2ban/fail2ban.conf
+F2B_CONF_FILE="$PROJECT_ROOT/fail2ban/fail2ban.conf"
+F2B_JAIL_FILE="$PROJECT_ROOT/fail2ban/jail.local"
+if [ ! -f "$F2B_CONF_FILE" ]; then
+  echo "Missing fail2ban conf file $F2B_CONF_FILE"
+  exit 1
+fi
+
+# fail2ban/jail.local
+if [ ! -f "$F2B_JAIL_FILE" ]; then
+  echo "Missing fail2ban jail file $F2B_JAIL_FILE"
+  exit 1
+fi
+
+# conf.d/nssk.cnf
+# require this as it enables logging for fail2ban
+DB_CONFD_DIR="$PROJECT_ROOT/mysql/conf.d"
+if [ ! -d "$DB_CONFD_DIR" ]; then
+  echo "Missing database custom confd directory $DB_CONFD_DIR"
+  exit 1
+fi
+
+NSSK_DB_CUSTOM_CONF_FILE="$DB_CONFD_DIR/nssk.cnf"
+if [ ! -f "$NSSK_DB_CUSTOM_CONF_FILE" ]; then
+  echo "Missing mysql custom confd file $NSSK_DB_CUSTOM_CONF_FILE"
+  exit 1
+fi
+
+# database_setup
+DB_SETUP_SCRIPT_DIR="$PROJECT_ROOT/database_setup"
+if [ ! -d "$DB_SETUP_SCRIPT_DIR" ]; then
+  echo "Missing database setup scripts directory $DB_SETUP_SCRIPT_DIR"
   exit 1
 fi
 
@@ -100,7 +139,7 @@ if [ "$MEMORY_SWAP_AMT" == "null" ] || [ -z "$MEMORY_SWAP_AMT" ]; then
 fi
 
 #########################
-# database
+# database state
 
 # native default port, container networking forwards a non-default port to this
 MYSQL_PORT=3306
@@ -109,22 +148,16 @@ MYSQL_ROOT_PW_FILE="mysql.txt"
 
 #DB_SETUP_SCRIPT="docker-entrypoint-initdb.d/0_nssk_setup.sql"
 
-
-PROJECT_ROOT="$(dirname "$(readlink -f "$0")")"
-
-DATA_DIR="$PROJECT_ROOT/data"
+# data directory holding database fs state
+DATA_DIR="$PROJECT_ROOT/mysql/data"
 if [ ! -d "$DATA_DIR" ]; then
-	mkdir "$DATA_DIR"
+	mkdir -p "$DATA_DIR"
 fi
 
-LOG_DIR="$PROJECT_ROOT/mysql"
+# log directory
+LOG_DIR="$PROJECT_ROOT/mysql/log"
 if [ ! -d "$LOG_DIR" ]; then
-	mkdir "$LOG_DIR"
-fi
-
-CONFD_DIR="$PROJECT_ROOT/conf.d"
-if [ ! -d "$CONFD_DIR" ]; then
-	mkdir "$CONFD_DIR"
+	mkdir -p "$LOG_DIR"
 fi
 
 #########################
@@ -158,12 +191,13 @@ docker run\
  --memory-swap="$MEMORY_SWAP_AMT"\
  -e MYSQL_ROOT_PASSWORD_FILE="/$MYSQL_ROOT_PW_FILE"\
  -v "$DATA_DIR":/var/lib/mysql\
- -v "$CONFD_DIR":/etc/mysql/conf.d\
+ -v "$DB_CONFD_DIR":/etc/mysql/conf.d\
  -v "$LOG_DIR":/var/log/mysql\
  -d\
  "$IMAGE_NAME"
 
 # TODO: may not always have logging enabled. add a switch for this or detect it from files in 'nssk-data/mysql'
+# require logging enabled?
 
 # wait on container healthcheck - can take a few minutes to start up
 MAX_CHECKS=10
