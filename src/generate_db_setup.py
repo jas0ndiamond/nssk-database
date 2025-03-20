@@ -533,10 +533,6 @@ def main(args):
     create_databases()
     print("NSSK databases created")
 
-    print("Creating NSSK root password file")
-    create_root_pw_file()
-    print("NSSK root password file created")
-
     # create users and apply permissions for users
     print("Creating NSSK users")
     configure_users()
@@ -586,6 +582,11 @@ def main(args):
     ###########
     # write our setup script files
     write_setup_scripts()
+
+    # write the password file
+    print("Creating NSSK root password file")
+    create_root_pw_file()
+    print("NSSK root password file created")
 
     print("Setup completed. Move your credentials file to a secure location.")
 
