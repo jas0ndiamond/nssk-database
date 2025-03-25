@@ -1,6 +1,7 @@
 #!/bin/bash
 
 BACKUP_DIR=$1
+CRED_FILE=$2
 
 if [ -z "$BACKUP_DIR" ]; then
   echo "Need backup directory"
@@ -12,19 +13,19 @@ if [ ! -d "$BACKUP_DIR" ]; then
   exit 1
 fi
 
-
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-
-CRED_FILE="$SCRIPT_DIR"/conf/config.json
+if [ -z "$CRED_FILE" ]; then
+  echo "Need credential file"
+  exit 1
+fi
 
 if [ ! -f "$CRED_FILE" ]; then
-  echo "Credential file not found"
+  echo "Credential file does not exist"
   exit 1
 fi
 
 USER="nssk_backup"
-HOST="$(jq -r '.host' < "$CRED_FILE")"
-PORT="$(jq -r '.port' < "$CRED_FILE")"
+HOST="$(jq -r '.network.listen_ip' < "$CRED_FILE")"
+PORT="$(jq -r '.network.listen_port' < "$CRED_FILE")"
 CRED="$(jq -r '.users.nssk_backup' < "$CRED_FILE")"
 
 if [[ -z $HOST ]]; then
