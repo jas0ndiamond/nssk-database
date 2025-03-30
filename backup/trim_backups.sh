@@ -1,9 +1,13 @@
 #!/bin/bash
 
+# run a database backup of a nssk database instance
+# system dump is not performed for now
+# expectation is backup is restored into a fresh instance
+# deletes .sql and .sql.* backups
+
 MAX_DEL=20
 MIN_KEEP=20
 
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 BACKUP_DIR=$1
 
 if [ -z "$BACKUP_DIR" ]; then
@@ -16,23 +20,15 @@ if [ ! -d "$BACKUP_DIR" ]; then
   exit 1
 fi
 
-#nssk_dump_2024-03-17_000301.sql
-#nssk_dump_2024-05-04_000501.sql
+# naming
+# nssk_database_backup_2025-03-29_230328.sql.gz
+# nssk_database_backup_2025-03-29_230340.sql.gz
 #...
-
-#nssk_dump_system_2024-04-10_000401.sql
-#nssk_dump_system_2024-04-11_000401.sql
-#...
-
-
 
 # trim backups if we're over our maximum
 BACKUP_COUNT=$(/bin/ls -l "$BACKUP_DIR" | grep -cv "^total")
 if [ "$BACKUP_COUNT" -gt $MIN_KEEP ]; then
-        /bin/ls -l "$BACKUP_DIR" | grep "nssk_data_dump_.*\.xml$" | head -$MAX_DEL | awk -v mydir="$BACKUP_DIR" '{print mydir"/"$NF}' | xargs rm -v
+        /bin/ls -l "$BACKUP_DIR" | grep "nssk_database_backup_.*\.sql*" | head -$MAX_DEL | awk -v mydir="$BACKUP_DIR" '{print mydir"/"$NF}' | xargs rm -v
 else
         echo "Skipping backup trim for backup count $BACKUP_COUNT in directory $BACKUP_DIR"
 fi
-
-exit 0;
-
