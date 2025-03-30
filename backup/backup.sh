@@ -54,16 +54,22 @@ if [ ! -d "$BACKUP_DIR" ]; then
 fi
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H%m%S")
-DUMP_FILE=$BACKUP_DIR/nssk_dump_"$TIMESTAMP".sql
+DUMP_FILE=$BACKUP_DIR/nssk_database_backup_"$TIMESTAMP".sql
 #DUMP_SYSTEM_FILE=$BACKUP_DIR/nssk_dump_system_"$TIMESTAMP".sql
 
-echo "Dumping database tables to $DUMP_FILE"
+echo "Dumping NSSK database tables to $DUMP_FILE"
 mysqldump\
  -u $USER\
  -P "$PORT"\
  -h "$HOST"\
  --password="$CRED"\
  --all-databases > "$DUMP_FILE"
+
+# backups can be in the gigabyte range. gzip compresses this a lot. other compression tools would work fine too
+# gzip by default does not keep the original file. so no need to manually delete.
+echo -n "Compressing backup..."
+gzip "$DUMP_FILE"
+echo "Done"
 
 # TODO: sort out permissions and retry
 #echo "Dumping database system state to $DUMP_SYSTEM_FILE"
