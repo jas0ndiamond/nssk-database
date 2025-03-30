@@ -3,6 +3,40 @@
 BACKUP_DIR=$1
 CRED_FILE=$2
 
+##################################
+# check if we have jq
+which jq > /dev/null
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+  echo "Could not find jq on PATH. Please install jq. Exiting..."
+  exit 1
+fi
+
+##################################
+# check if we have gzip
+which gzip > /dev/null
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+  echo "Could not find gzip on PATH. Please install gzip. Exiting..."
+  exit 1
+fi
+
+##################################
+# check if we have mysqldump. backups can be run remotely so it's not ridiculous, and it's quick to check.
+
+which mysqldump > /dev/null
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+  echo "Could not find mysqldump on PATH. Please install mysqldump. Exiting..."
+  exit 1
+fi
+
+##################################
+# parameter check
+
 if [ -z "$BACKUP_DIR" ]; then
   echo "Need backup directory"
   exit 1
