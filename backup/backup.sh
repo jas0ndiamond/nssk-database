@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BACKUP_DIR=$1
-CRED_FILE=$2
+CONF_FILE=$2
 
 ##################################
 # check if we have jq
@@ -47,20 +47,20 @@ if [ ! -d "$BACKUP_DIR" ]; then
   exit 1
 fi
 
-if [ -z "$CRED_FILE" ]; then
-  echo "Need credential file"
+if [ -z "$CONF_FILE" ]; then
+  echo "Need config file"
   exit 1
 fi
 
-if [ ! -f "$CRED_FILE" ]; then
-  echo "Credential file does not exist"
+if [ ! -f "$CONF_FILE" ]; then
+  echo "Config file does not exist"
   exit 1
 fi
 
 USER="nssk_backup"
-HOST="$(jq -r '.network.listen_ip' < "$CRED_FILE")"
-PORT="$(jq -r '.network.listen_port' < "$CRED_FILE")"
-CRED="$(jq -r '.users.nssk_backup' < "$CRED_FILE")"
+HOST="$(jq -r '.network.listen_ip' < "$CONF_FILE")"
+PORT="$(jq -r '.network.listen_port' < "$CONF_FILE")"
+PASS="$(jq -r '.users.nssk_backup' < "$CONF_FILE")"
 
 if [[ -z $HOST ]]; then
   echo "Could not read host"
@@ -72,8 +72,8 @@ if [[ -z $PORT ]]; then
   exit 1
 fi
 
-if [[ -z $CRED ]]; then
-  echo "Could not read credentials"
+if [[ -z $PASS ]]; then
+  echo "Could not read password"
   exit 1
 fi
 
@@ -96,7 +96,7 @@ mysqldump\
  -u $USER\
  -P "$PORT"\
  -h "$HOST"\
- --password="$CRED"\
+ --password="$PASS"\
  --all-databases > "$DUMP_FILE"
 
 # backups can be in the gigabyte range. gzip compresses this a lot. other compression tools would work fine too
@@ -111,6 +111,6 @@ echo "Done"
 # -u $USER\
 # -P "$PORT"\
 # -h $HOST\
-# --password="$CRED"\
+# --password="$PASS"\
 # --system=all > "$DUMP_SYSTEM_FILE"
 
