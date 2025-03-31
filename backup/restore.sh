@@ -90,14 +90,14 @@ else
   exit 1
 fi
 
-# hmmm seeing some directive set at top of file when the backup script is run with cron
-# first line of file matches "MariaDB dump 10.19  Distrib 10.11.6-MariaDB, for debian-linux-gnu (x86_64)"
-#if read -r line < "$DB_DUMP_FILE" && [[ "$line" == "-- MariaDB dump "* ]]; then
-#    echo "Database dump file preamble check passed"
-#else
-#    echo "Database dump file preamble check failed. Dump file must begin with '-- MariaDB dump '"
-#    exit 1
-#fi
+# first lines (preamble) of dump file matches "-- MariaDB dump 10.19  Distrib 10.11.6-MariaDB, for debian-linux-gnu (x86_64)"
+#if read -r line < `head -2 $DB_DUMP_FILE | tail -1` && [[ "$line" == "-- MariaDB dump "* ]]; then
+if head -n 6 "$DB_DUMP_FILE" | grep -qE -- '-- MariaDB dump [0-9]{1,5}\.[0-9]{1,5}  Distrib [0-9]{1,5}\.[0-9]{1,5}\.[0-9]{1,5}-MariaDB,'; then
+    echo "Database dump file preamble check passed"
+else
+    echo "Database dump file preamble check failed. Dump file preamble must contain '-- MariaDB dump '"
+    exit 1
+fi
 
 
 
