@@ -82,7 +82,6 @@ if [ ! -f "$DB_DUMP_FILE" ]; then
 fi
 
 # ends in .sql
-#if [[ "$DB_DUMP_FILE" =~ \.(?i)sql$ ]]; then
 if [[ "$DB_DUMP_FILE" =~ \.[sS][qQ][lL]$ ]]; then
   echo "Database dump file extension check passed"
 else
@@ -98,10 +97,7 @@ else
     exit 1
 fi
 
-
-
 # would it be easy to check that all tables are empty? maybe but just throw this in the warning
-
 
 ####################
 # final prompt before running restore
