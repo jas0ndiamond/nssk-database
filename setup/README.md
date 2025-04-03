@@ -30,7 +30,7 @@ The setup script generates an SQL script to create and configure the following u
 ### Run database setup script
 
 Set config values in `nssk-data/setup/generate_db_setup.py`
-* Specifically the LAN_NETWORK and CONTAINER_NETWORK
+* Specifically the `LAN_NETWORK` and `CONTAINER_NETWORK`
 
 Run the database setup generation script. Scripts will land in `nssk-data/docker/setup/`
 
