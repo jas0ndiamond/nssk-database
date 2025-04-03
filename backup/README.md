@@ -3,11 +3,11 @@
 ---
 ### Setup
 
-Ensure the jq and mysql-client are installed on your system, and `mysqldump` and `jq` binaries are available on the PATH.
+Ensure the jq, gzip, and mysql-client are installed on your system, and `mysqldump`, `gzip`, and `jq` binaries are available on the PATH.
 ```
-sudo apt-get install mysql-client jq
+sudo apt-get install mysql-client jq gzip
 -or-
-sudo yum install mysql jq
+sudo yum install mysql jq gzip
 ```
 
 ---
