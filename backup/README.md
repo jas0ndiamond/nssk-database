@@ -3,11 +3,11 @@
 ---
 ### Setup
 
-Ensure the mysql-client package is installed on your system, and `mysqldump` binary is available on the PATH.
+Ensure the jq and mysql-client are installed on your system, and `mysqldump` and `jq` binaries are available on the PATH.
 ```
-sudo apt-get install mysql-client
+sudo apt-get install mysql-client jq
 -or-
-sudo yum install mysql
+sudo yum install mysql jq
 ```
 
 ---
