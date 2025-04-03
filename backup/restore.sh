@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # typically this is done manually but this script attempts to streamline stuff
-# will attempt to create databases if they don't exist
+# requires dump to be created with backup.sh script
+# will attempt to create databases and tables if they don't exist
 
 CONF_FILE=$1
 DB_DUMP_FILE=$2
