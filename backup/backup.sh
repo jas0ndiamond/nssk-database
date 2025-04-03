@@ -104,13 +104,3 @@ mysqldump\
 echo -n "Compressing backup..."
 gzip "$DUMP_FILE"
 echo "Done"
-
-# TODO: sort out permissions and retry
-#echo "Dumping database system state to $DUMP_SYSTEM_FILE"
-#mysqldump\
-# -u $USER\
-# -P "$PORT"\
-# -h $HOST\
-# --password="$PASS"\
-# --system=all > "$DUMP_SYSTEM_FILE"
-
