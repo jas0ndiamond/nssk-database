@@ -41,17 +41,11 @@ Deploy a fresh instance of the database. Stops a running database and purges exi
 ---
 
 ### Notes
-
-* The container creates network 9.9.1.0
 * The MySQL database port set up to be forwarded from 22306 by default.
 * If the database is web-facing, configure router port-forwarding if necessary.
 * If a container is stopped with `docker stop nssk-database`, it should be started with `docker start nssk-database`. 
 
 ---
 
-### Backups
-
-* Create a backup
-  * cronjob
-* Restore from backup
-  * With `nssk-admin` user
+### Backup and Restore
+* [Backup and Restore](backup/README.md)
