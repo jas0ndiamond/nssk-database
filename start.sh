@@ -246,12 +246,10 @@ docker exec -it "$CONTAINER_NAME" /usr/bin/fail2ban-client status &&
 echo "Removing setup script from container filesystem" &&
 docker exec -it "$CONTAINER_NAME" rm -v /docker-entrypoint-initdb.d/1_create_users.sql &&
 
-# the container needs this file on startup
+# the container needs this file on startup or restart
 echo "Setting owner and permissions on cred file" &&
 docker exec -it "$CONTAINER_NAME" chown root:root "$MYSQL_ROOT_PW_FILE" &&
 docker exec -it "$CONTAINER_NAME" chmod 600 "$MYSQL_ROOT_PW_FILE"
-#&& echo "Removing cred file from container filesystem" &&
-#docker exec -it "$CONTAINER_NAME" rm -v "$MYSQL_ROOT_PW_FILE"
 
 # Confirm that 1_create_users.sql was deleted from /docker-entrypoint-initdb.d/
 if docker exec -it "$CONTAINER_NAME" sh -c "test -f /docker-entrypoint-initdb.d/1_create_users.sql"; then
