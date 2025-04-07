@@ -40,6 +40,9 @@ CONTAINER_NETWORK = "container_network"  # configured on container host
 WAN_NETWORK = "wan_network"
 
 NSSK_USERS_KEY = "users"
+NSSK_USERS_KEY_INTERNAL = "internal"
+NSSK_USERS_KEY_EXTERNAL = "external"
+
 NSSK_USER = "nssk"
 NSSK_IMPORT_USER = "nssk_import"
 NSSK_BACKUP_USER = "nssk_backup"
@@ -210,24 +213,24 @@ def check_config():
     ######################
     # check that our required users are defined with passwords
 
-    if NSSK_USER not in config[NSSK_USERS_KEY]:
+    if NSSK_USER not in config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL]:
         raise "NSSK_USER not defined in user config"
-    elif config[NSSK_USERS_KEY][NSSK_USER] is None or config[NSSK_USERS_KEY][NSSK_USER] == "":
+    elif config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_USER] is None or config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_USER] == "":
         raise "NSSK_USER password not defined in user config"
 
-    if NSSK_IMPORT_USER not in config[NSSK_USERS_KEY]:
+    if NSSK_IMPORT_USER not in config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL]:
         raise "NSSK_IMPORT_USER not defined in user config"
-    elif config[NSSK_USERS_KEY][NSSK_IMPORT_USER] is None or config[NSSK_USERS_KEY][NSSK_IMPORT_USER] == "":
+    elif config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_IMPORT_USER] is None or config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_IMPORT_USER] == "":
         raise "NSSK_IMPORT_USER password not defined in user config"
 
-    if NSSK_BACKUP_USER not in config[NSSK_USERS_KEY]:
+    if NSSK_BACKUP_USER not in config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL]:
         raise "NSSK_BACKUP_USER not defined in user config"
-    elif config[NSSK_USERS_KEY][NSSK_BACKUP_USER] is None or config[NSSK_USERS_KEY][NSSK_BACKUP_USER] == "":
+    elif config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_BACKUP_USER] is None or config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_BACKUP_USER] == "":
         raise "NSSK_BACKUP_USER password not defined in user config"
 
-    if NSSK_ADMIN_USER not in config[NSSK_USERS_KEY]:
+    if NSSK_ADMIN_USER not in config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL]:
         raise "NSSK_ADMIN_USER not defined in user config"
-    elif config[NSSK_USERS_KEY][NSSK_ADMIN_USER] is None or config[NSSK_USERS_KEY][NSSK_ADMIN_USER] == "":
+    elif config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_ADMIN_USER] is None or config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_ADMIN_USER] == "":
         raise "NSSK_ADMIN_USER password not defined in user config"
 
 
@@ -246,8 +249,42 @@ def create_databases():
     for dbname in DATABASES:
         db_setup_statements.append("create database %s;" % dbname)
 
+def generate_user_create_statement(user, network, secret):
+    # original plaintext method
+    return "CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user, network, secret)
 
-def configure_users():
+def configure_external_users():
+    for user in config[NSSK_USERS_KEY][NSSK_USERS_KEY_EXTERNAL]:
+
+        # TODO: ignore users beginning with "dummy-"
+
+        # "jason": {
+        #     "hash": "asdgasdgasghasdgs",
+        #     "privileges": ["SELECT"]
+        # },
+
+        # network always wan
+        user_setup_statements.append(
+            generate_user_create_statement(
+                user,
+                config[NETWORK_KEY][WAN_NETWORK],
+                config[NSSK_USERS_KEY][NSSK_USERS_KEY_EXTERNAL][user]["hash"]
+            )
+        )
+
+    print("Database external user creation completed")
+
+    ######################
+    # set user privileges
+
+    print("Configuring external user privileges")
+
+    # external users
+    for user in config[NSSK_USERS_KEY][NSSK_USERS_KEY_EXTERNAL]:
+        for database in DATABASES:
+            pass
+
+def configure_internal_users():
     # nssk - standard read-only user for working with data
     # nssk_import - user for importing data from various sources
     # nssk_admin - user/db management
@@ -256,64 +293,81 @@ def configure_users():
     ######################
     # create users
 
-    print("Creating database users")
+    print("Creating database internal users")
 
     # create nssk user
     # access from WAN, LAN, container networks
-    user_setup_statements.append("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" %
-                                 (NSSK_USER, config[NETWORK_KEY][WAN_NETWORK], config[NSSK_USERS_KEY][NSSK_USER]))
+    user_setup_statements.append(
+        generate_user_create_statement(
+            NSSK_USER,
+            config[NETWORK_KEY][WAN_NETWORK],
+            config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_USER]
+        )
+    )
 
     # create nssk_import
     # access from LAN, container networks
-    user_setup_statements.append("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" %
-                                 (NSSK_IMPORT_USER,
-                                  config[NETWORK_KEY][LOCAL_NETWORK],
-                                  config[NSSK_USERS_KEY][NSSK_IMPORT_USER])
-                                 )
-
-    user_setup_statements.append("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" %
-                                 (NSSK_IMPORT_USER,
-                                  config[NETWORK_KEY][CONTAINER_NETWORK],
-                                  config[NSSK_USERS_KEY][NSSK_IMPORT_USER])
-                                 )
-
-    # create nssk_backup
-    # access from LAN, container networks
-    user_setup_statements.append("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" %
-                                 (NSSK_BACKUP_USER,
-                                  config[NETWORK_KEY][LOCAL_NETWORK],
-                                  config[NSSK_USERS_KEY][NSSK_BACKUP_USER])
-                                 )
-    user_setup_statements.append("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" %
-                                 (NSSK_BACKUP_USER,
-                                  config[NETWORK_KEY][CONTAINER_NETWORK],
-                                  config[NSSK_USERS_KEY][NSSK_BACKUP_USER])
-                                 )
+    user_setup_statements.append(
+        generate_user_create_statement(
+            NSSK_IMPORT_USER,
+            config[NETWORK_KEY][LOCAL_NETWORK],
+            config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_IMPORT_USER]
+        )
+    )
+    user_setup_statements.append(
+        generate_user_create_statement(
+            NSSK_IMPORT_USER,
+            config[NETWORK_KEY][CONTAINER_NETWORK],
+            config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_IMPORT_USER]
+        )
+    )
 
     # create nssk_backup
     # access from LAN, container networks
-    user_setup_statements.append("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" %
-                                 (NSSK_ADMIN_USER,
-                                  config[NETWORK_KEY][LOCAL_NETWORK],
-                                  config[NSSK_USERS_KEY][NSSK_ADMIN_USER]))
+    user_setup_statements.append(
+        generate_user_create_statement(
+            NSSK_BACKUP_USER,
+            config[NETWORK_KEY][LOCAL_NETWORK],
+            config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_BACKUP_USER]
+        )
+    )
+    user_setup_statements.append(
+        generate_user_create_statement(
+            NSSK_BACKUP_USER,
+            config[NETWORK_KEY][CONTAINER_NETWORK],
+            config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_BACKUP_USER]
+        )
+    )
 
-    user_setup_statements.append("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" %
-                                 (NSSK_ADMIN_USER,
-                                  config[NETWORK_KEY][CONTAINER_NETWORK],
-                                  config[NSSK_USERS_KEY][NSSK_ADMIN_USER]))
+    # create nssk_backup
+    # access from LAN, container networks
+    user_setup_statements.append(
+        generate_user_create_statement(
+            NSSK_ADMIN_USER,
+            config[NETWORK_KEY][LOCAL_NETWORK],
+            config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_ADMIN_USER]
+        )
+    )
+    user_setup_statements.append(
+        generate_user_create_statement(
+            NSSK_ADMIN_USER,
+            config[NETWORK_KEY][CONTAINER_NETWORK],
+            config[NSSK_USERS_KEY][NSSK_USERS_KEY_INTERNAL][NSSK_ADMIN_USER]
+        )
+    )
 
-    # no longer need passwords in memory
+    # no longer need user data in memory
     config[NSSK_USERS_KEY][NSSK_USER] = None
     config[NSSK_USERS_KEY][NSSK_IMPORT_USER] = None
     config[NSSK_USERS_KEY][NSSK_BACKUP_USER] = None
     config[NSSK_USERS_KEY][NSSK_ADMIN_USER] = None
 
-    print("Database user creation completed")
+    print("Database internal user creation completed")
 
     ######################
     # set user privileges
 
-    print("Configuring user privileges")
+    print("Configuring internal user privileges")
 
     # allow nssk user select access to databases
     for database in DATABASES:
@@ -322,7 +376,7 @@ def configure_users():
             database,
             NSSK_USER,
             config[NETWORK_KEY][WAN_NETWORK])
-                                     )
+        )
 
     # allow nssk-import user select access to databases in case inserts need to make decisions
     # local and container networks only
@@ -535,7 +589,8 @@ def main(args):
 
     # create users and apply permissions for users
     print("Creating NSSK users")
-    configure_users()
+    configure_internal_users()
+    configure_external_users()
     limit_remote_root_login()
     print("NSSK users created")
 
