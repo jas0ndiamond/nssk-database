@@ -16,7 +16,10 @@ ADD ./database_setup/5_create_conductivity_rainfall_correlation_tables.sql /dock
 ADD ./database_setup/6_create_rainfall_event_data_tables.sql /docker-entrypoint-initdb.d
 ADD ./database_setup/7_create_waterrangers_tables.sql /docker-entrypoint-initdb.d
 ADD ./database_setup/8_create_cnv_hydrometric_tables.sql /docker-entrypoint-initdb.d
+
 ADD ./database_setup/mysql.txt /
+RUN chown root:root /mysql.txt
+RUN chmod 600 /mysql.txt
 
 # fail2ban config for mysql
 COPY ./fail2ban/jail.local /etc/fail2ban/jail.local
