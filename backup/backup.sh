@@ -60,7 +60,7 @@ fi
 USER="nssk_backup"
 HOST="$(jq -r '.network.listen_ip' < "$CONF_FILE")"
 PORT="$(jq -r '.network.listen_port' < "$CONF_FILE")"
-PASS="$(jq -r '.users.nssk_backup' < "$CONF_FILE")"
+PASS="$(jq -r '.users.internal.nssk_backup' < "$CONF_FILE")"
 
 if [[ -z $HOST ]]; then
   echo "Could not read host"

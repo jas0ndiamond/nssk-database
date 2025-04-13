@@ -47,7 +47,7 @@ USER="nssk_admin"
 # read from config
 HOST="$(jq -r '.network.listen_ip' < "$CONF_FILE")"
 PORT="$(jq -r '.network.listen_port' < "$CONF_FILE")"
-PASS="$(jq -r '.users.nssk_admin' < "$CONF_FILE")"
+PASS="$(jq -r '.users.internal.nssk_admin' < "$CONF_FILE")"
 
 if [[ -z $HOST ]]; then
   echo "Could not read host"
