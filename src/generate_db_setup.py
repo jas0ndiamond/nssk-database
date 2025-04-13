@@ -285,7 +285,7 @@ def configure_external_users():
         else:
             print("\tCreating external user: '%s'" % user)
             # "jason": {
-            #     "hash": "asdgasdgasghasdgs",
+            #     "password": "asdgasdgasghasdgs",
             #     "privileges": ["SELECT"]
             # },
 
