@@ -2,19 +2,24 @@
     "container_name": "my-db-container",
     "image_name": "nssk-mysql",
     "setup_user": "root",
-    "setup_pass": "password-hash",
+    "setup_pass": "password",
     "users": {
         "internal":{
-            "nssk": "password-hash",
-            "nssk_import": "password-hash",
-            "nssk_backup": "password-hash",
-            "nssk_admin": "password-hash"
+            "nssk": "password",
+            "nssk_import": "password",
+            "nssk_backup": "password",
+            "nssk_admin": "password"
         },
         "external": {
-            "ignored-dummy-user": {
-                "hash": "password-hash",
-                "databases": ["NSSK_COSMO"]
+            "dummy-user1": {
+                "password": "password",
+                "databases": ["NSSK_COSMO"],
                 "privileges": [ "SELECT" ]
+            },
+            "dummy-user2": {
+                "password": "password",
+                "databases": "*",
+                "privileges": [ "SELECT", "UPDATE", "INSERT" ]
             }
         }
     },
