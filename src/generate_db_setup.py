@@ -269,17 +269,12 @@ def create_databases():
     db_setup_statements.append("DROP TABLE mysql.help_topic, mysql.help_category, mysql.help_relation, mysql.help_keyword;")
 
 def generate_user_create_statement(user, network, secret):
-    # original plaintext method
-    return "CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (
-        user, network, secret
-    )
-
     #TODO use REQUIRE SSL when certs are configured
 
     # new hashing method
-    # return "CREATE USER '%s'@'%s' IDENTIFIED WITH caching_sha2_password BY '%s';" % (
-    #     user, network, secret
-    # )
+    return "CREATE USER '%s'@'%s' IDENTIFIED WITH caching_sha2_password BY '%s';" % (
+        user, network, secret
+    )
 
 def configure_external_users():
     user_setup_statements.append("-- External User Creation +++++++++++++++++++++")
