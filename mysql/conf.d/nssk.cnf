@@ -1,0 +1,9 @@
+[mysqld]
+
+# Inherit the system timezone
+default-time-zone = 'SYSTEM'
+
+character_set_server=UTF8MB4
+
+# disable numa
+innodb_numa_interleave=OFF
