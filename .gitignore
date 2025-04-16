@@ -2,7 +2,7 @@ setup/conf/*.json
 
 mysql/data/
 mysql/log/
-mysql/conf.d/*.cnf
+mysql/conf.d/nssk-ext.cnf
 
 utils/push.sh
 
@@ -11,6 +11,7 @@ database_setup/
 fail2ban/
 
 backup/conf/*.json
+backup/*.sql.gz
 
 venv
 

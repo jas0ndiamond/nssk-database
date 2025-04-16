@@ -17,6 +17,8 @@ ADD ./database_setup/6_create_rainfall_event_data_tables.sql /docker-entrypoint-
 ADD ./database_setup/7_create_waterrangers_tables.sql /docker-entrypoint-initdb.d
 ADD ./database_setup/8_create_cnv_hydrometric_tables.sql /docker-entrypoint-initdb.d
 
+RUN find /docker-entrypoint-initdb.d -name "*.sql" -exec chown mysql:mysql {} \;
+
 ADD ./database_setup/mysql.txt /
 RUN chown root:root /mysql.txt
 RUN chmod 600 /mysql.txt
@@ -28,8 +30,12 @@ COPY ./fail2ban/fail2ban.conf /etc/fail2ban/fail2ban.conf
 # won't work until mysql logs are created on fs
 #RUN service fail2ban start
 
+# create log folder
 RUN mkdir /var/log/mysql
 RUN chown mysql:mysql /var/log/mysql
+
+# seeing odd permissions by default. set explicitly
+RUN chmod 750 /var/run/mysqld
 
 # database port
 EXPOSE 3306

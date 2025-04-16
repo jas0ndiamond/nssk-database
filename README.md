@@ -7,7 +7,7 @@ Stand up a containerized database to house NSSK data imported from its various s
 ### Setup
 * Create database config file from the template in `nssk-database/setup/conf/db-setup.json.template`
 * Create fail2ban config files (`fail2ban.conf`, `jail.local`) and copy to `nssk-database/fail2ban`
-* Create a custom mysql config file `nssk.cnf` from the template in `nssk-database/mysql/conf.d/nssk.cnf.template`
+* Create a custom mysql config file `nssk-ext.cnf` from the template in `nssk-database/mysql/conf.d/nssk-ext.cnf.template`
 * Install `jq`: `sudo apt-get install jq`
 * Install and start docker.
 * Run the setup script:

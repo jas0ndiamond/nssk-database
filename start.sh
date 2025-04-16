@@ -46,7 +46,13 @@ if [ ! -d "$DB_CONFD_DIR" ]; then
   exit 1
 fi
 
-NSSK_DB_CUSTOM_CONF_FILE="$DB_CONFD_DIR/nssk.cnf"
+NSSK_DB_CONF_FILE="$DB_CONFD_DIR/nssk.cnf"
+if [ ! -f "$NSSK_DB_CONF_FILE" ]; then
+  echo "Missing mysql confd file $NSSK_DB_CONF_FILE"
+  exit 1
+fi
+
+NSSK_DB_CUSTOM_CONF_FILE="$DB_CONFD_DIR/nssk-ext.cnf"
 if [ ! -f "$NSSK_DB_CUSTOM_CONF_FILE" ]; then
   echo "Missing mysql custom confd file $NSSK_DB_CUSTOM_CONF_FILE"
   exit 1
@@ -237,21 +243,26 @@ fi
 
 # start fail2ban in container. requires mysql logging being enabled, and logs to be in place so wait for the database to fully start up.
 # should be viable once the container is started and reporting healthy
-# TODO selective startup of fail2ban based on whether or not we're starting mysql with logging
 echo "Starting fail2ban" &&
 docker exec -it "$CONTAINER_NAME" /etc/init.d/fail2ban start &&
 sleep 10 &&
 docker exec -it "$CONTAINER_NAME" /etc/init.d/fail2ban status &&
 docker exec -it "$CONTAINER_NAME" /usr/bin/fail2ban-client status &&
-echo "Removing setup script from container filesystem" &&
-docker exec -it "$CONTAINER_NAME" rm -v /docker-entrypoint-initdb.d/1_create_users.sql &&
 
 # the container needs this file on startup or restart
 echo "Setting owner and permissions on cred file" &&
 docker exec -it "$CONTAINER_NAME" chown root:root "$MYSQL_ROOT_PW_FILE" &&
-docker exec -it "$CONTAINER_NAME" chmod 600 "$MYSQL_ROOT_PW_FILE"
+docker exec -it "$CONTAINER_NAME" chmod 500 "$MYSQL_ROOT_PW_FILE" &&
 
-# Confirm that 1_create_users.sql was deleted from /docker-entrypoint-initdb.d/
+# odd that these are world-writable by default
+echo "Setting permissions on sock files" &&
+docker exec -it "$CONTAINER_NAME" find /run/mysqld/ -name '*.sock' -exec chmod 660 {} \; &&
+
+# Remove 1_create_users.sql from /docker-entrypoint-initdb.d/ and confirm
+echo "Removing setup script from container filesystem" &&
+docker exec -it "$CONTAINER_NAME" rm -v /docker-entrypoint-initdb.d/1_create_users.sql
+
+# confirm removal of 1_create_users.sql
 if docker exec -it "$CONTAINER_NAME" sh -c "test -f /docker-entrypoint-initdb.d/1_create_users.sql"; then
   echo "WARNING: Failed to delete /docker-entrypoint-initdb.d/1_create_users.sql from container filesystem."
 else
