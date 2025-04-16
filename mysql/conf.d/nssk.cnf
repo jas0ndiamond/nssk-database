@@ -5,5 +5,5 @@ default-time-zone = 'SYSTEM'
 
 character_set_server=UTF8MB4
 
-# disable numa
+# disable numa - not likely we'll use this feature, and it generates mbind errors in the logs
 innodb_numa_interleave=OFF
