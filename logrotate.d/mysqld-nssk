@@ -2,6 +2,7 @@
 # test with logrotate -d logrotate.d/myconf
 # rotating needs to be based on size or time frequency (weekly)
 # by default these log files are mysql:mysql 640
+# by default logrotate runs as part of /etc/cron.daily, and log files can get very large very quickly, so delaycompress is not used to save space
 /var/log/mysql/mysql-error.log
 /var/log/mysql/mysql-slow.log
 /var/log/mysql/mysql.log
