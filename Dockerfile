@@ -33,8 +33,16 @@ ADD --chown=mysql:mysql ./database_setup/7_create_waterrangers_tables.sql /docke
 ADD --chown=mysql:mysql ./database_setup/8_create_cnv_hydrometric_tables.sql /docker-entrypoint-initdb.d
 
 # mysql cnf files - both are required
-ADD --chown=mysql:mysql ./mysql/conf.d/nssk.cnf /etc/mysql/conf.d/
-ADD --chown=mysql:mysql ./mysql/conf.d/nssk-ext.cnf /etc/mysql/conf.d/
+# also add any other .cnf files
+#ADD --chown=mysql:mysql ./mysql/conf.d/nssk.cnf /etc/mysql/conf.d/
+#ADD --chown=mysql:mysql ./mysql/conf.d/nssk-ext.cnf /etc/mysql/conf.d/
+#ADD --chown=mysql:mysql ./mysql/conf.d/*.cnf /etc/mysql/conf.d/
+
+#root owns these resources and mysql user is allowed to read
+ADD --chown=root:root ./mysql/conf.d/nssk.cnf /etc/mysql/conf.d/
+ADD --chown=root:root ./mysql/conf.d/nssk-ext.cnf /etc/mysql/conf.d/
+ADD --chown=root:root ./mysql/conf.d/*.cnf /etc/mysql/conf.d/
+RUN chmod 644 /etc/mysql/conf.d/*.cnf
 
 # won't work until mysql logs are created on fs
 #RUN service fail2ban start
