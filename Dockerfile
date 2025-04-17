@@ -34,10 +34,6 @@ ADD --chown=mysql:mysql ./database_setup/8_create_cnv_hydrometric_tables.sql /do
 
 # mysql cnf files - both are required
 # also add any other .cnf files
-#ADD --chown=mysql:mysql ./mysql/conf.d/nssk.cnf /etc/mysql/conf.d/
-#ADD --chown=mysql:mysql ./mysql/conf.d/nssk-ext.cnf /etc/mysql/conf.d/
-#ADD --chown=mysql:mysql ./mysql/conf.d/*.cnf /etc/mysql/conf.d/
-
 #root owns these resources and mysql user is allowed to read
 ADD --chown=root:root ./mysql/conf.d/nssk.cnf /etc/mysql/conf.d/
 ADD --chown=root:root ./mysql/conf.d/nssk-ext.cnf /etc/mysql/conf.d/
