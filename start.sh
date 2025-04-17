@@ -23,49 +23,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 ##################################
-# file resource checks - viable files created outright, from templates, or from the generation process
-# fail2ban/fail2ban.conf
-F2B_CONF_FILE="$PROJECT_ROOT/fail2ban/fail2ban.conf"
-F2B_JAIL_FILE="$PROJECT_ROOT/fail2ban/jail.local"
-if [ ! -f "$F2B_CONF_FILE" ]; then
-  echo "Missing fail2ban conf file $F2B_CONF_FILE"
-  exit 1
-fi
-
-# fail2ban/jail.local
-if [ ! -f "$F2B_JAIL_FILE" ]; then
-  echo "Missing fail2ban jail file $F2B_JAIL_FILE"
-  exit 1
-fi
-
-# conf.d/nssk.cnf
-# require this as it enables logging for fail2ban
-DB_CONFD_DIR="$PROJECT_ROOT/mysql/conf.d"
-if [ ! -d "$DB_CONFD_DIR" ]; then
-  echo "Missing database custom confd directory $DB_CONFD_DIR"
-  exit 1
-fi
-
-NSSK_DB_CONF_FILE="$DB_CONFD_DIR/nssk.cnf"
-if [ ! -f "$NSSK_DB_CONF_FILE" ]; then
-  echo "Missing mysql confd file $NSSK_DB_CONF_FILE"
-  exit 1
-fi
-
-NSSK_DB_CUSTOM_CONF_FILE="$DB_CONFD_DIR/nssk-ext.cnf"
-if [ ! -f "$NSSK_DB_CUSTOM_CONF_FILE" ]; then
-  echo "Missing mysql custom confd file $NSSK_DB_CUSTOM_CONF_FILE"
-  exit 1
-fi
-
-# database_setup
-DB_SETUP_SCRIPT_DIR="$PROJECT_ROOT/database_setup"
-if [ ! -d "$DB_SETUP_SCRIPT_DIR" ]; then
-  echo "Missing database setup scripts directory $DB_SETUP_SCRIPT_DIR"
-  exit 1
-fi
-
-##################################
 # check if we have jq
 which jq > /dev/null
 RESULT=$?
@@ -197,7 +154,6 @@ docker run\
  --memory-swap="$MEMORY_SWAP_AMT"\
  -e MYSQL_ROOT_PASSWORD_FILE="/$MYSQL_ROOT_PW_FILE"\
  -v "$DATA_DIR":/var/lib/mysql\
- -v "$DB_CONFD_DIR":/etc/mysql/conf.d\
  -v "$LOG_DIR":/var/log/mysql\
  -d\
  "$IMAGE_NAME"
