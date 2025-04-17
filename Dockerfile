@@ -32,7 +32,7 @@ ADD --chown=mysql:mysql ./database_setup/6_create_rainfall_event_data_tables.sql
 ADD --chown=mysql:mysql ./database_setup/7_create_waterrangers_tables.sql /docker-entrypoint-initdb.d
 ADD --chown=mysql:mysql ./database_setup/8_create_cnv_hydrometric_tables.sql /docker-entrypoint-initdb.d
 
-# mysql cnf files
+# mysql cnf files - both are required
 ADD --chown=mysql:mysql ./mysql/conf.d/nssk.cnf /etc/mysql/conf.d/
 ADD --chown=mysql:mysql ./mysql/conf.d/nssk-ext.cnf /etc/mysql/conf.d/
 
