@@ -4,7 +4,15 @@ ENV TZ="America/Vancouver"
 
 LABEL org.opencontainers.image.authors="jason.a.diamond@gmail.com"
 
-RUN apt-get update && apt-get install -y logrotate fail2ban less procps tzdata && apt-get clean all && rm -rf /var/lib/apt/lists/*
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update &&  \
+    apt-get install --install-recommends -y apt-utils && \
+    apt-get install --install-recommends -y logrotate fail2ban less procps tzdata rsyslog locales cron && \
+    apt-get clean all && rm -rf /var/lib/apt/lists/*
+
+# disable kernel logging within the container
+RUN sed -i '/module(load="imklog")/s/^/#/' /etc/rsyslog.conf
 
 # mysql cred file
 ADD --chown=mysql:mysql ./database_setup/mysql.txt /
