@@ -200,13 +200,14 @@ fi
 ##########
 # start up and set up other container resources
 
+# start up rsyslogd
+# needs to happen before cron and fail2ban
+echo "Starting rsyslogd"
+docker exec -it "$CONTAINER_NAME" rsyslogd
+
 # start up cron
 echo "Starting cron"
 docker exec -it "$CONTAINER_NAME" service cron start
-
-# start up rsyslogd
-echo "Starting rsyslogd"
-docker exec -it "$CONTAINER_NAME" rsyslogd
 
 # start fail2ban in container. requires mysql logging being enabled, and logs to be in place so wait for the database to fully start up.
 # should be viable once the container is started and reporting healthy
