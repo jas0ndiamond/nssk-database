@@ -5,16 +5,18 @@ Stand up a containerized database to house NSSK data imported from its various s
 ---
 
 ### Setup
-* Create database config file from the template in `nssk-database/setup/conf/db-setup.json.template`
-* Create fail2ban config files (`fail2ban.conf`, `jail.local`) and copy to `nssk-database/fail2ban`
-* Create a custom mysql config file `nssk-ext.cnf` from the template in `nssk-database/mysql/conf.d/nssk-ext.cnf.template`
-* Install `jq`: `sudo apt-get install jq`
-* Install and start docker.
-* Run the setup script:
-```
-cd src
-python3 generate_db_setup.py /path/to/db-setup.json
-```
+1. Ensure python3 is installed and available on the PATH
+2. Run the environment setup script `./setup-env.sh`
+3. Create database config file from the template in `nssk-database/setup/conf/db-setup.json.template`
+4. Create fail2ban config files (`fail2ban.conf`, `jail.local`) and copy to `nssk-database/fail2ban`
+5. Create a custom mysql config file `nssk-ext.cnf` from the template in `nssk-database/mysql/conf.d/nssk-ext.cnf.template`
+6. Install `jq`: `sudo apt-get install jq`
+7. Install and start docker.
+8. Run the setup script:
+    ```
+    cd src
+    /path/to/venv/bin/python3 generate_db_setup.py /path/to/db-setup.json
+    ```
 ---
 
 ### Start/Deploy container
