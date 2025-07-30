@@ -39,6 +39,7 @@ ADD --chown=mysql:mysql ./database_setup/5_create_conductivity_rainfall_correlat
 ADD --chown=mysql:mysql ./database_setup/6_create_rainfall_event_data_tables.sql /docker-entrypoint-initdb.d
 ADD --chown=mysql:mysql ./database_setup/7_create_waterrangers_tables.sql /docker-entrypoint-initdb.d
 ADD --chown=mysql:mysql ./database_setup/8_create_cnv_hydrometric_tables.sql /docker-entrypoint-initdb.d
+ADD --chown=mysql:mysql ./database_setup/9_create_rainfall_interval_data_tables.sql /docker-entrypoint-initdb.d
 
 # mysql cnf files - both are required
 # also add any other .cnf files
