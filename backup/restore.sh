@@ -4,6 +4,11 @@
 # requires dump to be created with backup.sh script
 # will attempt to create databases and tables if they don't exist
 
+if [[ -z $1 || -z $2 ]]; then
+  echo "Usage: restore.sh confFile databaseDumpFile"
+  exit 1
+fi
+
 CONF_FILE=$1
 DB_DUMP_FILE=$2
 

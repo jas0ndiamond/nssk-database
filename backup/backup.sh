@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [[ -z $1 || -z $2 ]]; then
+  echo "Usage: restore.sh confFile databaseDumpFile"
+  exit 1
+fi
+
 BACKUP_DIR=$1
 CONF_FILE=$2
 
