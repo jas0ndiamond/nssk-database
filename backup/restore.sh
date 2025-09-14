@@ -140,11 +140,12 @@ read -r -p "Proceed? (Y/N): " confirm && ( [[ $confirm == [yY] || $confirm == [y
 # debug
 #echo "Command $CMD"
 
+echo "Running restore..."
 eval "$CMD"
 
 result=$?
 
-if [[ $result -eq 0 ]]; then
+if [ $result -eq 0 ]; then
   echo "Successfully completed database restore."
 else
   echo "Error running database restore: $result."
