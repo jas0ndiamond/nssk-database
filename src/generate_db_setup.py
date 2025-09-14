@@ -139,14 +139,13 @@ rainfall_interval_data_sites = [
 ]
 
 #####################
+# define resource paths
 
-# Dockerfile and start.sh expect these files. do not make configurable
-# TODO: check path exists
-# TODO: switch to ../ from this file's location
-# TODO: create project root from this file's location
-project_root =".."
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_script_dir)
 scriptfile_target_dir = "%s/database_setup" % project_root
 
+# Dockerfile and start.sh expect these files. do not make configurable
 create_db_scriptfile = "%s/0_create_dbs.sql" % scriptfile_target_dir
 create_users_scriptfile = "%s/1_create_users.sql" % scriptfile_target_dir
 create_nssk_cosmo_tables_scriptfile = "%s/2_create_nssk_cosmo_tables.sql" % scriptfile_target_dir
