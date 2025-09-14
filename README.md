@@ -12,11 +12,7 @@ Stand up a containerized database to house NSSK data imported from its various s
 5. Create a custom mysql config file `nssk-ext.cnf` from the template in `nssk-database/mysql/conf.d/nssk-ext.cnf.template`
 6. Install `jq`: `sudo apt-get install jq`
 7. Install and start docker.
-8. Run the setup script:
-    ```
-    cd src
-    /path/to/venv/bin/python3 generate_db_setup.py /path/to/db-setup.json
-    ```
+
 ---
 
 ### Start/Deploy container
