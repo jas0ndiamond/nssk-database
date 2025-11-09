@@ -461,13 +461,14 @@ def configure_internal_users():
         user_setup_statements.append("GRANT SELECT ON %s.* TO '%s'@'%s';" %
                                      (database, NSSK_IMPORT_USER, config[NETWORK_KEY][CONTAINER_NETWORK]))
 
-    # add write access to cosmo_data for nssk-import
+    # add write access for nssk-import.
+    # DROP for truncation since some datasets need to be re-made each time
     # local and container networks only
     for database in DATABASES:
-        user_setup_statements.append("GRANT CREATE, INSERT, UPDATE, DELETE ON %s.* TO '%s'@'%s';" %
+        user_setup_statements.append("GRANT CREATE, INSERT, UPDATE, DELETE, DROP ON %s.* TO '%s'@'%s';" %
                                      (database, NSSK_IMPORT_USER, config[NETWORK_KEY][LOCAL_NETWORK]))
 
-        user_setup_statements.append("GRANT CREATE, INSERT, UPDATE, DELETE ON %s.* TO '%s'@'%s';" %
+        user_setup_statements.append("GRANT CREATE, INSERT, UPDATE, DELETE, DROP ON %s.* TO '%s'@'%s';" %
                                      (database, NSSK_IMPORT_USER, config[NETWORK_KEY][CONTAINER_NETWORK]))
 
     # allow nssk-admin write access
