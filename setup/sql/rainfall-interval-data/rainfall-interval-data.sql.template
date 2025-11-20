@@ -1,6 +1,7 @@
 -- require at least one timestamp (COSMO, CNV_HYDROMETRIC, CNV_FLOWWORKS) not to be null
 -- cannot use keys for timestamps, as some timestamps are null
 -- table constraints must be unique, so append the site name
+-- set a unique key on CNV_FLOWWORKS_RAINFALL_START_TIMESTAMP, which allows nulls, primary key cant be nullable
 CREATE TABLE $SITE (
 	CNV_FLOWWORKS_RAINFALL_START_TIMESTAMP DATETIME NULL,
 	CNV_FLOWWORKS_RAINFALL_END_TIMESTAMP DATETIME NULL,
@@ -19,6 +20,7 @@ CREATE TABLE $SITE (
         COSMO_TIMESTAMP IS NOT NULL OR
         CNV_HYDROMETRIC_TIMESTAMP IS NOT NULL OR
         CNV_FLOWWORKS_RAINFALL_START_TIMESTAMP IS NOT NULL
-    )
+    ),
+    UNIQUE KEY uniq_cnv_rainfall_start (CNV_FLOWWORKS_RAINFALL_START_TIMESTAMP)
 );
 
