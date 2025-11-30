@@ -23,43 +23,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 ##################################
-# file resource checks - viable files created outright, from templates, or from the generation process
-# fail2ban/fail2ban.conf
-F2B_CONF_FILE="$PROJECT_ROOT/fail2ban/fail2ban.conf"
-F2B_JAIL_FILE="$PROJECT_ROOT/fail2ban/jail.local"
-if [ ! -f "$F2B_CONF_FILE" ]; then
-  echo "Missing fail2ban conf file $F2B_CONF_FILE"
-  exit 1
-fi
-
-# fail2ban/jail.local
-if [ ! -f "$F2B_JAIL_FILE" ]; then
-  echo "Missing fail2ban jail file $F2B_JAIL_FILE"
-  exit 1
-fi
-
-# conf.d/nssk.cnf
-# require this as it enables logging for fail2ban
-DB_CONFD_DIR="$PROJECT_ROOT/mysql/conf.d"
-if [ ! -d "$DB_CONFD_DIR" ]; then
-  echo "Missing database custom confd directory $DB_CONFD_DIR"
-  exit 1
-fi
-
-NSSK_DB_CUSTOM_CONF_FILE="$DB_CONFD_DIR/nssk.cnf"
-if [ ! -f "$NSSK_DB_CUSTOM_CONF_FILE" ]; then
-  echo "Missing mysql custom confd file $NSSK_DB_CUSTOM_CONF_FILE"
-  exit 1
-fi
-
-# database_setup
-DB_SETUP_SCRIPT_DIR="$PROJECT_ROOT/database_setup"
-if [ ! -d "$DB_SETUP_SCRIPT_DIR" ]; then
-  echo "Missing database setup scripts directory $DB_SETUP_SCRIPT_DIR"
-  exit 1
-fi
-
-##################################
 # check if we have jq
 which jq > /dev/null
 RESULT=$?
@@ -191,7 +154,6 @@ docker run\
  --memory-swap="$MEMORY_SWAP_AMT"\
  -e MYSQL_ROOT_PASSWORD_FILE="/$MYSQL_ROOT_PW_FILE"\
  -v "$DATA_DIR":/var/lib/mysql\
- -v "$DB_CONFD_DIR":/etc/mysql/conf.d\
  -v "$LOG_DIR":/var/log/mysql\
  -d\
  "$IMAGE_NAME"
@@ -235,25 +197,40 @@ else
   exit 1
 fi
 
+##########
+# start up and set up other container resources
+
+# start up rsyslogd
+# needs to happen before cron and fail2ban
+echo "Starting rsyslogd"
+docker exec -it "$CONTAINER_NAME" rsyslogd
+
+# start up cron
+echo "Starting cron"
+docker exec -it "$CONTAINER_NAME" service cron start
+
 # start fail2ban in container. requires mysql logging being enabled, and logs to be in place so wait for the database to fully start up.
 # should be viable once the container is started and reporting healthy
-# TODO selective startup of fail2ban based on whether or not we're starting mysql with logging
 echo "Starting fail2ban" &&
 docker exec -it "$CONTAINER_NAME" /etc/init.d/fail2ban start &&
 sleep 10 &&
 docker exec -it "$CONTAINER_NAME" /etc/init.d/fail2ban status &&
 docker exec -it "$CONTAINER_NAME" /usr/bin/fail2ban-client status &&
-echo "Removing setup script from container filesystem" &&
-docker exec -it "$CONTAINER_NAME" rm -v /docker-entrypoint-initdb.d/1_create_users.sql &&
 
-# the container needs this file on startup
+# the container needs this file on startup or restart
 echo "Setting owner and permissions on cred file" &&
 docker exec -it "$CONTAINER_NAME" chown root:root "$MYSQL_ROOT_PW_FILE" &&
-docker exec -it "$CONTAINER_NAME" chmod 600 "$MYSQL_ROOT_PW_FILE"
-#&& echo "Removing cred file from container filesystem" &&
-#docker exec -it "$CONTAINER_NAME" rm -v "$MYSQL_ROOT_PW_FILE"
+docker exec -it "$CONTAINER_NAME" chmod 500 "$MYSQL_ROOT_PW_FILE" &&
 
-# Confirm that 1_create_users.sql was deleted from /docker-entrypoint-initdb.d/
+# odd that these are world-writable by default
+echo "Setting permissions on sock files" &&
+docker exec -it "$CONTAINER_NAME" find /run/mysqld/ -name '*.sock' -exec chmod 660 {} \; &&
+
+# Remove 1_create_users.sql from /docker-entrypoint-initdb.d/ and confirm
+echo "Removing setup script from container filesystem" &&
+docker exec -it "$CONTAINER_NAME" rm -v /docker-entrypoint-initdb.d/1_create_users.sql
+
+# confirm removal of 1_create_users.sql
 if docker exec -it "$CONTAINER_NAME" sh -c "test -f /docker-entrypoint-initdb.d/1_create_users.sql"; then
   echo "WARNING: Failed to delete /docker-entrypoint-initdb.d/1_create_users.sql from container filesystem."
 else

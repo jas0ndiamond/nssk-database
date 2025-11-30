@@ -48,20 +48,64 @@ if [ ! -f "$F2B_JAIL_FILE" ]; then
   exit 1
 fi
 
-# conf.d/nssk.cnf
-# require this as it enables logging for fail2ban
+# conf.d/
 DB_CONFD_DIR="$PROJECT_ROOT/mysql/conf.d"
 if [ ! -d "$DB_CONFD_DIR" ]; then
   echo "Missing database custom confd directory $DB_CONFD_DIR"
   exit 1
 fi
 
+# conf.d/nssk.cnf
 NSSK_DB_CUSTOM_CONF_FILE="$DB_CONFD_DIR/nssk.cnf"
 if [ ! -f "$NSSK_DB_CUSTOM_CONF_FILE" ]; then
-  echo "Missing mysql custom confd file $NSSK_DB_CUSTOM_CONF_FILE"
+  echo "Missing mysql confd file $NSSK_DB_CUSTOM_CONF_FILE"
   exit 1
 fi
 
+# conf.d/nssk-ext.cnf
+NSSK_DB_CUSTOM_CONF_EXT_FILE="$DB_CONFD_DIR/nssk-ext.cnf"
+if [ ! -f "$NSSK_DB_CUSTOM_CONF_EXT_FILE" ]; then
+  echo "Missing mysql extended confd file $NSSK_DB_CUSTOM_CONF_EXT_FILE"
+  exit 1
+fi
+
+# logrotate.d
+LOGROTATE_CONF_DIR="$PROJECT_ROOT/logrotate.d"
+if [ ! -d "$LOGROTATE_CONF_DIR" ]; then
+  echo "Missing logrotate.d config directory $LOGROTATE_CONF_DIR"
+  exit 1
+fi
+
+# logrotate.d/mysqld-nssk
+NSSK_DB_LOGROTATE_CONF_FILE="$LOGROTATE_CONF_DIR/mysqld-nssk"
+if [ ! -f "$NSSK_DB_LOGROTATE_CONF_FILE" ]; then
+  echo "Missing logrotate conf file $NSSK_DB_LOGROTATE_CONF_FILE"
+  exit 1
+fi
+
+####################################################
+# run the python script to generate the db structure
+####################################################
+
+# check that we have a venv
+VENV_DIR="./venv"
+VENV_BIN="./venv/bin/python3"
+
+if [ ! -d "$VENV_DIR" ]; then
+  echo "Missing venv directory: $VENV_DIR"
+  exit 1
+fi
+
+if [ ! -f "$VENV_BIN" ]; then
+  echo "Missing venv python3 binary: $VENV_BIN"
+  exit 1
+fi
+
+# generate db structure
+eval "$VENV_BIN src/generate_db_setup.py $CONFIG_FILE"
+
+
+############
 # check database_setup directory. can't build image without these resources
 DB_SETUP_SCRIPT_DIR="$PROJECT_ROOT/database_setup"
 if [ ! -d "$DB_SETUP_SCRIPT_DIR" ]; then
@@ -69,6 +113,8 @@ if [ ! -d "$DB_SETUP_SCRIPT_DIR" ]; then
   exit 1
 fi
 
+
 ##################################
 # build image
+echo "Building image $IMAGE_NAME..."
 docker build -t "$IMAGE_NAME" .

@@ -1,0 +1,27 @@
+# debian seems to require full-line comments
+# test with logrotate -d logrotate.d/myconf
+# rotating needs to be based on size or time frequency (weekly)
+# by default these log files are mysql:mysql 640
+# by default logrotate runs as part of /etc/cron.daily, and log files can get very large very quickly, so delaycompress is not used to save space
+/var/log/mysql/mysql-error.log
+/var/log/mysql/mysql-slow.log
+/var/log/mysql/mysql.log
+{
+	# Rotate the log if it exceeds 1MB in size
+	size 1M
+
+	# Keep 10 archived logs
+	rotate 20
+
+	# Compress old log files (e.g., trim.log.1.gz)
+	compress
+
+	# Do not generate an error if the log file is missing
+	missingok
+
+	# Do not rotate the log if it's empty
+	notifempty
+
+	# Create a new log file with specific permissions (owner: mysql, group: mysql)
+	create 640 mysql mysql
+}
