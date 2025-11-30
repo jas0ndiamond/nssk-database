@@ -1,10 +1,9 @@
-import sys
 import json
 import os
 import re
+import sys
 from pathlib import Path
 from string import Template
-from typing import Any
 
 # set up the nssk mysql database
 #
