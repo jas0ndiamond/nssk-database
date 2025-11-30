@@ -1,7 +1,12 @@
 #!/bin/bash
 
-BACKUP_DIR=$1
-CONF_FILE=$2
+if [[ -z $1 || -z $2 ]]; then
+  echo "Usage: restore.sh confFile databaseDumpFile"
+  exit 1
+fi
+
+CONF_FILE=$1
+BACKUP_DIR=$2
 
 ##################################
 # check if we have jq
@@ -99,8 +104,19 @@ mysqldump\
  --password="$PASS"\
  --all-databases > "$DUMP_FILE"
 
-# backups can be in the gigabyte range. gzip compresses this a lot. other compression tools would work fine too
-# gzip by default does not keep the original file. so no need to manually delete.
-echo -n "Compressing backup..."
-gzip "$DUMP_FILE"
-echo "Done"
+result=$?
+if [ $result -eq 0 ]; then
+  echo "Backup successful"
+
+  # backups can be in the gigabyte range. gzip compresses this a lot. other compression tools would work fine too
+  # gzip by default does not keep the original file. so no need to manually delete.
+  echo -n "Compressing backup..."
+  gzip "$DUMP_FILE"
+  echo "Done"
+else
+  echo "Backup failed"
+  exit 1
+fi
+
+exit 0
+

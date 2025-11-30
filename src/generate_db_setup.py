@@ -1,10 +1,9 @@
-import sys
 import json
 import os
 import re
+import sys
 from pathlib import Path
 from string import Template
-from typing import Any
 
 # set up the nssk mysql database
 #
@@ -18,6 +17,7 @@ DB_SETUP_USER_KEY = 'setup_user'
 DB_SETUP_USER_PASS_KEY = 'setup_pass'
 
 # TODO: add to config file? Maybe not- each has a set of tables with variable schemas
+# TODO: maybe add to config class, and an internal config file. may want it not in the repo to limit attack surface
 NSSK_COSMO_DB = "NSSK_COSMO"
 NSSK_DNV_FLOWWORKS_DB = "NSSK_DNV_FLOWWORKS"
 NSSK_CNV_FLOWWORKS_DB = "NSSK_CNV_FLOWWORKS"
@@ -25,6 +25,7 @@ NSSK_CONDUCTIVITY_RAINFALL_CORRELATION_DB = "NSSK_CONDUCTIVITY_RAINFALL_CORRELAT
 NSSK_RAINFALL_EVENT_DATA_DB = "NSSK_RAINFALL_EVENT_DATA"
 NSSK_WATERRANGERS_DB = "NSSK_WATERRANGERS"
 NSSK_CNV_HYDROMETRIC_DB = "NSSK_CNV_HYDROMETRIC"
+NSSK_RAINFALL_INTERVAL_DATA_DB = "NSSK_RAINFALL_INTERVAL_DATA"
 
 DATABASES = [
     NSSK_COSMO_DB,
@@ -33,7 +34,8 @@ DATABASES = [
     NSSK_CONDUCTIVITY_RAINFALL_CORRELATION_DB,
     NSSK_RAINFALL_EVENT_DATA_DB,
     NSSK_WATERRANGERS_DB,
-    NSSK_CNV_HYDROMETRIC_DB
+    NSSK_CNV_HYDROMETRIC_DB,
+    NSSK_RAINFALL_INTERVAL_DATA_DB
 ]
 
 NETWORK_KEY = "network"
@@ -87,7 +89,7 @@ cosmo_monitoring_location_ids = [
 # rainfall sites. uses conductivity readings from these cosmo sites,
 # along with rainfall data from CNV Flowworks CNVRain site
 # TODO: map from cnv sites to cosmo sites
-rainfall_sites = [
+rainfall_event_sites = [
     "WAGG01",
     "WAGG03"
 ]
@@ -130,15 +132,19 @@ cnv_hydrometric_sites = [
     "WaggCreek"
 ]
 
-#####################
+rainfall_interval_data_sites = [
+    "WAGG01",
+    "WAGG03"
+]
 
-# Dockerfile and start.sh expect these files. do not make configurable
-# TODO: check path exists
-# TODO: switch to ../ from this file's location
-# TODO: create project root from this file's location
-project_root =".."
+#####################
+# define resource paths
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_script_dir)
 scriptfile_target_dir = "%s/database_setup" % project_root
 
+# Dockerfile and start.sh expect these files. do not make configurable
 create_db_scriptfile = "%s/0_create_dbs.sql" % scriptfile_target_dir
 create_users_scriptfile = "%s/1_create_users.sql" % scriptfile_target_dir
 create_nssk_cosmo_tables_scriptfile = "%s/2_create_nssk_cosmo_tables.sql" % scriptfile_target_dir
@@ -148,6 +154,7 @@ create_conductivity_rainfall_correlation_tables_scriptfile = "%s/5_create_conduc
 create_rainfall_event_data_tables_scriptfile = "%s/6_create_rainfall_event_data_tables.sql" % scriptfile_target_dir
 create_waterrangers_tables_scriptfile = "%s/7_create_waterrangers_tables.sql" % scriptfile_target_dir
 create_cnv_hydrometric_tables_scriptfile = "%s/8_create_cnv_hydrometric_tables.sql" % scriptfile_target_dir
+create_rainfall_interval_data_tables_scriptfile = "%s/9_create_rainfall_interval_data_tables.sql" % scriptfile_target_dir
 
 create_mysql_root_cred_file = "%s/mysql.txt" % scriptfile_target_dir
 
@@ -164,6 +171,7 @@ create_rainfall_events_tables = []
 create_rainfall_event_data_tables = []
 create_waterrangers_tables = []
 create_cnv_hydrometric_tables = []
+create_rainfall_interval_data_tables = []
 
 #############################
 
@@ -219,6 +227,10 @@ def write_setup_scripts():
     with open(create_cnv_hydrometric_tables_scriptfile, 'w') as handle:
         handle.writelines("%s\n" % line for line in create_cnv_hydrometric_tables)
 
+    print("\tWriting Rainfall Interval Data table setup script to %s" %
+          create_rainfall_interval_data_tables_scriptfile)
+    with open(create_rainfall_interval_data_tables_scriptfile, 'w') as handle:
+        handle.writelines("%s\n" % line for line in create_rainfall_interval_data_tables)
 
 def check_config():
     ######################
@@ -448,13 +460,14 @@ def configure_internal_users():
         user_setup_statements.append("GRANT SELECT ON %s.* TO '%s'@'%s';" %
                                      (database, NSSK_IMPORT_USER, config[NETWORK_KEY][CONTAINER_NETWORK]))
 
-    # add write access to cosmo_data for nssk-import
+    # add write access for nssk-import.
+    # DROP for truncation since some datasets need to be re-made each time
     # local and container networks only
     for database in DATABASES:
-        user_setup_statements.append("GRANT CREATE, INSERT, UPDATE, DELETE ON %s.* TO '%s'@'%s';" %
+        user_setup_statements.append("GRANT CREATE, INSERT, UPDATE, DELETE, DROP ON %s.* TO '%s'@'%s';" %
                                      (database, NSSK_IMPORT_USER, config[NETWORK_KEY][LOCAL_NETWORK]))
 
-        user_setup_statements.append("GRANT CREATE, INSERT, UPDATE, DELETE ON %s.* TO '%s'@'%s';" %
+        user_setup_statements.append("GRANT CREATE, INSERT, UPDATE, DELETE, DROP ON %s.* TO '%s'@'%s';" %
                                      (database, NSSK_IMPORT_USER, config[NETWORK_KEY][CONTAINER_NETWORK]))
 
     # allow nssk-admin write access
@@ -562,7 +575,7 @@ def setup_rainfall_event_data_tables():
     table_template = Template(open(
         "%s/setup/sql/rainfall-event-data/rainfall-event-data.sql.template" % project_root).read())
 
-    for monitoring_location_id in rainfall_sites:
+    for monitoring_location_id in rainfall_event_sites:
         create_table_sql = table_template.substitute(MONITORING_LOCATION_ID=monitoring_location_id)
         create_rainfall_event_data_tables.append(create_table_sql)
 
@@ -588,6 +601,16 @@ def setup_cnv_hydrometric_tables():
     for site in cnv_hydrometric_sites:
         create_table_sql = table_template.substitute(SITE=site)
         create_cnv_hydrometric_tables.append(create_table_sql)
+
+def setup_rainfall_interval_data_tables():
+    table_template = Template(open("%s/setup/sql/rainfall-interval-data/rainfall-interval-data.sql.template" % project_root).read())
+
+    # set the database to create the tables in
+    create_rainfall_interval_data_tables.append("use %s;" % NSSK_RAINFALL_INTERVAL_DATA_DB)
+
+    for site in rainfall_interval_data_sites:
+        create_table_sql = table_template.substitute(SITE=site)
+        create_rainfall_interval_data_tables.append(create_table_sql)
 
 # this may not be necessary any more
 # def setup_root_container_login():
@@ -700,6 +723,10 @@ def main(args):
     print("\tCreating Rainfall Event Data tables")
     setup_rainfall_event_data_tables()
     print("\tRainfall Event Data tables completed")
+
+    print("\tCreating Rainfall Interval Data tables")
+    setup_rainfall_interval_data_tables()
+    print("\tRainfall Interval Data tables completed")
 
     print("Database table creation completed")
 

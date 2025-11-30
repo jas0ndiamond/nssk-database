@@ -4,6 +4,11 @@
 # requires dump to be created with backup.sh script
 # will attempt to create databases and tables if they don't exist
 
+if [[ -z $1 || -z $2 ]]; then
+  echo "Usage: restore.sh confFile databaseDumpFile"
+  exit 1
+fi
+
 CONF_FILE=$1
 DB_DUMP_FILE=$2
 
@@ -98,11 +103,10 @@ if [[ "$DB_DUMP_FILE" =~ \.[sS][qQ][lL]$ ]]; then
   fi
 
   # command for restoring from an uncompressed file (.sql)
-  CMD="mysql -h $HOST -P $PORT -u $USER --password='$PASS' -f < $DB_DUMP_FILE"
+  CMD="pv $DB_DUMP_FILE | mysql -h $HOST -P $PORT -u $USER --password='$PASS' -f"
+
 elif [[ "$DB_DUMP_FILE" =~ \.[sS][qQ][lL]\.gz$ ]]; then
   echo "Database compressed dump file extension check passed"
-
-  # TODO: more checks on compressed dump file?
 
   # command for restoring from an compressed file (.sql.gz)
   CMD="gunzip < $DB_DUMP_FILE | mysql -h $HOST -P $PORT -u $USER --password=\"$PASS\" -f"
@@ -133,4 +137,13 @@ read -r -p "Proceed? (Y/N): " confirm && ( [[ $confirm == [yY] || $confirm == [y
 # debug
 #echo "Command $CMD"
 
+echo "Running restore..."
 eval "$CMD"
+
+result=$?
+
+if [ $result -eq 0 ]; then
+  echo "Successfully completed database restore."
+else
+  echo "Error running database restore: $result."
+fi
