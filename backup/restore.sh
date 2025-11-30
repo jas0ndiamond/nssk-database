@@ -103,13 +103,10 @@ if [[ "$DB_DUMP_FILE" =~ \.[sS][qQ][lL]$ ]]; then
   fi
 
   # command for restoring from an uncompressed file (.sql)
-  #CMD="mysql -h $HOST -P $PORT -u $USER --password='$PASS' -f < $DB_DUMP_FILE"
   CMD="pv $DB_DUMP_FILE | mysql -h $HOST -P $PORT -u $USER --password='$PASS' -f"
 
 elif [[ "$DB_DUMP_FILE" =~ \.[sS][qQ][lL]\.gz$ ]]; then
   echo "Database compressed dump file extension check passed"
-
-  # TODO: more checks on compressed dump file?
 
   # command for restoring from an compressed file (.sql.gz)
   CMD="gunzip < $DB_DUMP_FILE | mysql -h $HOST -P $PORT -u $USER --password=\"$PASS\" -f"
