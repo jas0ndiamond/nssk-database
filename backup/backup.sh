@@ -1,7 +1,8 @@
 #!/bin/bash
 
 if [[ -z $1 || -z $2 ]]; then
-  echo "Usage: restore.sh confFile databaseDumpFile"
+  echo "Run a backup of the database with a config file and destination for the backup."
+  echo "Usage: backup.sh confFile backupDirectory"
   exit 1
 fi
 
