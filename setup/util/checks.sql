@@ -87,7 +87,7 @@ FROM NSSK_COSMO.WAGG01
 WHERE NSSK_COSMO.WAGG01.CharacteristicName = "Water level (probe)" AND (NSSK_COSMO.WAGG01.ResultValue < 10 OR NSSK_COSMO.WAGG01.ResultValue > 11.5);
 
 
--- cnv rainfall
+-- cnv flowworks
 
 -- air temperature
 SELECT *
@@ -104,7 +104,7 @@ SELECT *
 from NSSK_CNV_FLOWWORKS.CNV
 where NSSK_CNV_FLOWWORKS.CNV.BarometricPressure < 940 or NSSK_CNV_FLOWWORKS.CNV.BarometricPressure > 1060;
 
--- dnv whitewater
+-- dnv flowworks
 
 -- date ranges
 
