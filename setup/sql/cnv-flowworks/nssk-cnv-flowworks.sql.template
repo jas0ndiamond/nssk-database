@@ -1,8 +1,8 @@
 CREATE TABLE $SITE (
-	MeasurementTimestamp DATETIME,
-	AirTemperature DECIMAL(9,7),
-	BarometricPressure DECIMAL(10,5),
-	HourlyRainfall DECIMAL(6,3),
+	MeasurementTimestamp DATETIME NOT NULL,
+	AirTemperature DECIMAL(9,7) NULL,
+	BarometricPressure DECIMAL(10,5) NULL,
+	HourlyRainfall DECIMAL(6,3) NULL,
 	Rainfall DECIMAL(6,3)
 );
 
