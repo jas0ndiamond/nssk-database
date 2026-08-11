@@ -5,6 +5,13 @@
 
 PROJECT_ROOT="$(dirname "$(readlink -f "$0")")"
 
+if [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
+  echo "Usage: ./push.sh user host path"
+  echo "  Rsyncs this repo to user@host:path (excludes ./data and ./mysql)."
+  echo "  Does not push a docker image to a registry, despite the name."
+  exit 0
+fi
+
 RSYNC_USER=$1
 RSYNC_HOST=$2
 REMOTE_PATH=$3
