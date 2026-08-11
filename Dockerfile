@@ -1,6 +1,12 @@
 FROM mysql:8.0-debian
 
-ENV TZ="America/Vancouver"
+# No hardcoded TZ - docker-compose.yml bind-mounts the host's /etc/localtime
+# read-only, so the container inherits whatever timezone the host is actually
+# running, without needing an image rebuild per deployment. (An ENV TZ here would
+# take precedence over that bind mount for glibc/most programs, silently
+# defeating it, so deliberately not set.) mysql/conf.d/nssk.cnf's
+# default-time-zone='SYSTEM' already reads this. Falls back to the base image's
+# own default (UTC) if the bind mount is ever absent.
 
 LABEL org.opencontainers.image.authors="jason.a.diamond@gmail.com"
 

@@ -32,6 +32,10 @@ services:
       # the plaintext CREATE USER statements never end up in an image layer. Only
       # processed by mysql on first init (empty datadir), same as before.
       - ./database_setup/1_create_users.sql:/docker-entrypoint-initdb.d/1_create_users.sql:ro
+      # container inherits the host's timezone instead of a baked-in one - see
+      # Dockerfile. Not /etc/timezone too: that file is Debian-specific and a host
+      # without it would bind-mount an empty directory over it, breaking the mount.
+      - /etc/localtime:/etc/localtime:ro
     networks:
       - nssk-database-network
 
