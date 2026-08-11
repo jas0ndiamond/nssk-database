@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
+  echo "Usage: backup.sh confFile backupDirectory"
+  echo "  Dumps the databases discovered on the instance (via nssk_backup, config"
+  echo "  file's network.listen_ip/listen_port) to backupDirectory, gzip-compressed."
+  exit 0
+fi
+
 if [[ -z $1 || -z $2 ]]; then
   echo "Run a backup of the database with a config file and destination for the backup."
   echo "Usage: backup.sh confFile backupDirectory"

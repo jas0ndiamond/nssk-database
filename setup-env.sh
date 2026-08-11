@@ -2,6 +2,13 @@
 
 # cleanly installs a venv for the project
 
+if [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
+  echo "Usage: ./setup-env.sh"
+  echo "  Creates a local Python venv (./venv) and installs requirements.txt into it."
+  echo "  Fails if ./venv already exists - remove it manually first to reset."
+  exit 0
+fi
+
 # check for python3 on the path
 which python3 > /dev/null
 RESULT=$?

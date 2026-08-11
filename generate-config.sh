@@ -6,6 +6,14 @@
 
 PROJECT_ROOT="$(dirname "$(readlink -f "$0")")"
 
+if [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
+  echo "Usage: ./generate-config.sh config.json"
+  echo "  Validates prerequisites (mysql/conf.d/nssk.cnf, nssk-ext.cnf,"
+  echo "  logrotate.d/mysqld-nssk, venv) and runs src/generate_db_setup.py against"
+  echo "  config.json to write database_setup/* (SQL scripts, root password file)."
+  exit 0
+fi
+
 CONFIG_FILE=$1
 
 if [ -z "$CONFIG_FILE" ]; then

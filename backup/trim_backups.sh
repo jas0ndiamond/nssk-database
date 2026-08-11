@@ -8,6 +8,13 @@
 MAX_DEL=20
 MIN_KEEP=20
 
+if [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
+  echo "Usage: trim_backups.sh backupDirectory"
+  echo "  Deletes the oldest backups once backupDirectory holds more than"
+  echo "  $MIN_KEEP entries, up to $MAX_DEL at a time. No-op below that threshold."
+  exit 0
+fi
+
 BACKUP_DIR=$1
 
 if [ -z "$BACKUP_DIR" ]; then

@@ -3,6 +3,13 @@
 # destructively remove and re-create the nssk-database container.
 # purges ./mysql/data and ./mysql/log, so the next start is a fresh instance.
 
+if [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
+  echo "Usage: ./redeploy.sh config.json"
+  echo "  DESTRUCTIVE: docker compose down, purges ./mysql/data and ./mysql/log,"
+  echo "  then runs ./deploy.sh for a fresh instance. All database state is lost."
+  exit 0
+fi
+
 CONFIG_FILE=$1
 
 if [ -z "$CONFIG_FILE" ]; then

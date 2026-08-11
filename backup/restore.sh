@@ -4,6 +4,14 @@
 # requires dump to be created with backup.sh script
 # will attempt to create databases and tables if they don't exist
 
+if [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
+  echo "Usage: restore.sh confFile databaseDumpFile"
+  echo "  Restores a .sql or .sql.gz dump (as nssk_admin) into a fresh, already-"
+  echo "  provisioned instance (schema/users already created, no data). Destructive"
+  echo "  to whatever is already at the target - prompts for confirmation first."
+  exit 0
+fi
+
 if [[ -z $1 || -z $2 ]]; then
   echo "Usage: restore.sh confFile databaseDumpFile"
   exit 1
