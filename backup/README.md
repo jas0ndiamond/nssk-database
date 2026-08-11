@@ -3,11 +3,11 @@
 ---
 ### Setup
 
-Ensure the jq, gzip, and mysql-client are installed on your system, and `mysqldump`, `gzip`, and `jq` binaries are available on the PATH.
+Ensure jq, gzip, pv, and mysql-client are installed on your system, and `mysqldump`, `mysql`, `gzip`, `pv`, and `jq` binaries are available on the PATH. `pv` is only needed by `restore.sh` for uncompressed (`.sql`) dumps.
 ```
-sudo apt-get install mysql-client jq gzip
+sudo apt-get install mysql-client jq gzip pv
 -or-
-sudo yum install mysql jq gzip
+sudo yum install mysql jq gzip pv
 ```
 
 ---
@@ -16,7 +16,7 @@ sudo yum install mysql jq gzip
 Invoke the `./backup.sh` script to make a backup of the NSSK database instance.
 
 ```
-./backup.sh /path/to/backup/dir /path/to/configs/config.json`
+./backup.sh /path/to/configs/config.json /path/to/backup/dir
 ```
 
 ---

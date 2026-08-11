@@ -1,35 +1,33 @@
 #!/bin/bash
 
-# deploy database to container server
+# push this repo to a remote server via rsync (this does not push a docker image to
+# a registry, despite the name)
 
-PROJECT_ROOT="$(dirname "$(readlink -f "$0")")/.."
+PROJECT_ROOT="$(dirname "$(readlink -f "$0")")"
 
-USER=$1
-HOST=$2
-PATH=$3
+RSYNC_USER=$1
+RSYNC_HOST=$2
+REMOTE_PATH=$3
 
-if [ -z "$USER" ]; then
+if [ -z "$RSYNC_USER" ]; then
   echo "User required"
-  exit 1;
+  exit 1
 fi
 
-if [ -z "$HOST" ]; then
+if [ -z "$RSYNC_HOST" ]; then
   echo "Host required"
-  exit 1;
+  exit 1
 fi
 
-if [ -z "$PATH" ]; then
+if [ -z "$REMOTE_PATH" ]; then
   echo "Path required. (/home/user/)"
-  exit 1;
+  exit 1
 fi
 
-PATH="$(dirname $PATH)"
+REMOTE_PATH="$(dirname "$REMOTE_PATH")"
 
-TARGET="$USER@$HOST:$PATH"
+TARGET="$RSYNC_USER@$RSYNC_HOST:$REMOTE_PATH"
 
+echo "/usr/bin/rsync --exclude=$PROJECT_ROOT/data --exclude=$PROJECT_ROOT/mysql -ruvh $PROJECT_ROOT $TARGET"
 
-CMD="/usr/bin/rsync --exclude=$PROJECT_ROOT/data --exclude=$PROJECT_ROOT/mysql -ruvh $PROJECT_ROOT $TARGET"
-
-echo $CMD
-
-eval $CMD
+/usr/bin/rsync --exclude="$PROJECT_ROOT/data" --exclude="$PROJECT_ROOT/mysql" -ruvh "$PROJECT_ROOT" "$TARGET"

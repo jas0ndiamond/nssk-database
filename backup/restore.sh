@@ -94,22 +94,26 @@ if [[ "$DB_DUMP_FILE" =~ \.[sS][qQ][lL]$ ]]; then
   echo "Database dump file extension check passed"
 
   # dump file preamble check
-  # first lines (preamble) of dump file matches "-- MariaDB dump 10.19  Distrib 10.11.6-MariaDB, "
-  if head -n 6 "$DB_DUMP_FILE" | grep -qE -- '^-- MariaDB dump [0-9]{1,5}\.[0-9]{1,5}  Distrib [0-9]{1,5}\.[0-9]{1,5}\.[0-9]{1,5}-MariaDB,'; then
+  # e.g. "-- MySQL dump 10.13  Distrib 8.0.46, for Linux (x86_64)" (this project's
+  # own mysql:8.0-debian image) or "-- MariaDB dump 10.19  Distrib 10.11.6-MariaDB, "
+  if head -n 6 "$DB_DUMP_FILE" | grep -qE -- '^-- (MySQL|MariaDB) dump [0-9]{1,5}\.[0-9]{1,5}  Distrib [0-9]{1,5}\.[0-9]{1,5}\.[0-9]{1,5}(-MariaDB)?,'; then
       echo "Database dump file preamble check passed"
   else
-      echo "Database dump file preamble check failed. Dump file preamble must contain '-- MariaDB dump '"
+      echo "Database dump file preamble check failed. Dump file preamble must contain '-- MySQL dump ' or '-- MariaDB dump '"
       exit 1
   fi
 
-  # command for restoring from an uncompressed file (.sql)
-  CMD="pv $DB_DUMP_FILE | mysql -h $HOST -P $PORT -u $USER --password='$PASS' -f"
+  which pv > /dev/null
+  if [ $? -ne 0 ]; then
+    echo "Could not find pv on PATH. Please install pv. Exiting..."
+    exit 1
+  fi
 
+  RESTORE_KIND="plain"
 elif [[ "$DB_DUMP_FILE" =~ \.[sS][qQ][lL]\.gz$ ]]; then
   echo "Database compressed dump file extension check passed"
 
-  # command for restoring from an compressed file (.sql.gz)
-  CMD="gunzip < $DB_DUMP_FILE | mysql -h $HOST -P $PORT -u $USER --password=\"$PASS\" -f"
+  RESTORE_KIND="gz"
 else
   echo "Database dump file has unexpected extension. Extension must end with '.sql' or '.sql.gz'"
   exit 1
@@ -134,11 +138,24 @@ echo "Ensure that the NSSK database instance is empty and ready for restore."
 echo "============================================================"
 read -r -p "Proceed? (Y/N): " confirm && ( [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || { echo "Did not get confirmation. Bailing..."; exit 1; } )
 
-# debug
-#echo "Command $CMD"
+# short-lived credentials file so the password never appears on the mysql command line
+# (and thus never shows up in `ps` output). Removed on exit regardless of outcome.
+CRED_FILE="$(mktemp)"
+trap 'rm -f "$CRED_FILE"' EXIT
+chmod 600 "$CRED_FILE"
+{
+  echo "[client]"
+  echo "user=$USER"
+  echo "password=$PASS"
+} > "$CRED_FILE"
 
 echo "Running restore..."
-eval "$CMD"
+
+if [ "$RESTORE_KIND" == "plain" ]; then
+  pv "$DB_DUMP_FILE" | mysql --defaults-extra-file="$CRED_FILE" -h "$HOST" -P "$PORT" -f
+else
+  gunzip < "$DB_DUMP_FILE" | mysql --defaults-extra-file="$CRED_FILE" -h "$HOST" -P "$PORT" -f
+fi
 
 result=$?
 

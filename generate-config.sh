@@ -1,11 +1,15 @@
 #!/bin/bash
 
+# generates the database_setup/ SQL scripts and root password file. Run this before
+# `docker compose up --build` (or use ./deploy.sh, which does both). docker-compose.yml
+# reads network settings from the static, checked-in .env - edit that directly.
+
 PROJECT_ROOT="$(dirname "$(readlink -f "$0")")"
 
 CONFIG_FILE=$1
 
 if [ -z "$CONFIG_FILE" ]; then
-  echo "Usage: ./build.sh config.json"
+  echo "Usage: ./generate-config.sh config.json"
   exit 1
 fi
 
@@ -25,28 +29,7 @@ if [ $RESULT -ne 0 ]; then
 fi
 
 ##################################
-# get the image name
-IMAGE_NAME="$(jq -r '."image_name"' < "$CONFIG_FILE")"
-if [ -z "$IMAGE_NAME" ]; then
-  echo "image_name not readable from config"
-  exit 1
-fi
-
-##################################
 # file resource checks - viable files created outright, from templates, or from the generation process
-# fail2ban/fail2ban.conf
-F2B_CONF_FILE="$PROJECT_ROOT/fail2ban/fail2ban.conf"
-F2B_JAIL_FILE="$PROJECT_ROOT/fail2ban/jail.local"
-if [ ! -f "$F2B_CONF_FILE" ]; then
-  echo "Missing fail2ban conf file $F2B_CONF_FILE"
-  exit 1
-fi
-
-# fail2ban/jail.local
-if [ ! -f "$F2B_JAIL_FILE" ]; then
-  echo "Missing fail2ban jail file $F2B_JAIL_FILE"
-  exit 1
-fi
 
 # conf.d/
 DB_CONFD_DIR="$PROJECT_ROOT/mysql/conf.d"
@@ -84,7 +67,7 @@ if [ ! -f "$NSSK_DB_LOGROTATE_CONF_FILE" ]; then
 fi
 
 ####################################################
-# run the python script to generate the db structure
+# run the python script to generate the db structure and credentials
 ####################################################
 
 # check that we have a venv
@@ -101,9 +84,14 @@ if [ ! -f "$VENV_BIN" ]; then
   exit 1
 fi
 
-# generate db structure
-eval "$VENV_BIN src/generate_db_setup.py $CONFIG_FILE"
+# generate db structure and mysql.txt
+"$VENV_BIN" src/generate_db_setup.py "$CONFIG_FILE"
+GENERATE_RESULT=$?
 
+if [ $GENERATE_RESULT -ne 0 ]; then
+  echo "generate_db_setup.py failed. Exiting..."
+  exit 1
+fi
 
 ############
 # check database_setup directory. can't build image without these resources
@@ -113,8 +101,4 @@ if [ ! -d "$DB_SETUP_SCRIPT_DIR" ]; then
   exit 1
 fi
 
-
-##################################
-# build image
-echo "Building image $IMAGE_NAME..."
-docker build -t "$IMAGE_NAME" .
+echo "Config generation complete. Run 'docker compose up -d --build' (or ./deploy.sh) to build and start the container."

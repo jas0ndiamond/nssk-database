@@ -1,0 +1,51 @@
+services:
+  nssk-database:
+    build:
+      context: .
+    # ${VAR:-default} - .env only needs to set DB_LISTEN_IP; everything else here
+    # falls back to the default shown unless .env adds an override for it too.
+    image: ${IMAGE_NAME:-nssk-mysql}
+    container_name: ${CONTAINER_NAME:-nssk-database}
+    restart: unless-stopped
+    # multiple background processes (rsyslogd/cron/mysqld) run in this
+    # container - init: true gets proper zombie reaping via tini
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${DB_LISTEN_IP:-127.0.0.1}:${DB_LISTEN_PORT:-23306}:3306"
+    cpus: "${CPU_COUNT:-2}"
+    mem_limit: ${MEMORY_AMT:-2.5g}
+    memswap_limit: ${MEMORY_SWAP_AMT:-5g}
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+    # docker compose (outside Swarm mode) bind-mounts `secrets.*.file` sources
+    # directly and silently ignores mode/uid/gid here - the file's permissions on
+    # the host (0600, set by generate_db_setup.py) are what actually restrict access.
+    secrets:
+      - mysql_root_password
+      - healthcheck_password
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/log:/var/log/mysql
+      # bind-mounted at runtime instead of baked into the image (see Dockerfile) so
+      # the plaintext CREATE USER statements never end up in an image layer. Only
+      # processed by mysql on first init (empty datadir), same as before.
+      - ./database_setup/1_create_users.sql:/docker-entrypoint-initdb.d/1_create_users.sql:ro
+    networks:
+      - nssk-database-network
+
+networks:
+  nssk-database-network:
+    name: ${NETWORK_NAME:-nssk-database-network}
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${CONTAINER_SUBNET:-9.9.1.0/24}
+          gateway: ${CONTAINER_GATEWAY:-9.9.1.1}
+
+secrets:
+  mysql_root_password:
+    file: ./database_setup/mysql.txt
+  healthcheck_password:
+    file: ./database_setup/healthcheck.txt

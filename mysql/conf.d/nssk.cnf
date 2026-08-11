@@ -7,3 +7,27 @@ character_set_server=UTF8MB4
 
 # disable numa - not likely we'll use this feature, and it generates mbind errors in the logs
 innodb_numa_interleave=OFF
+
+# Route logs to /var/log/mysql/* instead of container stdout. logrotate.d/mysqld-nssk
+# depends on these files existing, and they're bind-mounted to the host (see
+# docker-compose.yml) for any future host-level log-watching (e.g. fail2ban) to use.
+log_error = /var/log/mysql/mysql-error.log
+
+general_log = 0
+general_log_file = /var/log/mysql/mysql.log
+
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/mysql-slow.log
+long_query_time = 2
+
+# Require TLS on every TCP connection, for every account, no exceptions. MySQL 8.0
+# auto-generates a self-signed CA/server cert on first init and already advertises
+# TLS support - this closes a verified gap where any client could simply request
+# --ssl=0 and connect in plaintext, since nothing previously required otherwise.
+# Unix-socket connections (root@localhost, docker-entrypoint-initdb.d init, the
+# healthcheck's TCP-fallback-to-socket case) are exempt automatically - sockets
+# are already OS-boundary-protected and don't carry network traffic to encrypt.
+# Certs are self-signed (encrypts, doesn't prove server identity) and regenerate
+# on every from-scratch init (redeploy.sh) - a real CA is later work, tracked in
+# SECURITY.md, not done here.
+require_secure_transport = ON

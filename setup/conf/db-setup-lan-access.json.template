@@ -1,6 +1,4 @@
 {
-    "container_name": "my-db-container",
-    "image_name": "nssk-mysql",
     "setup_user": "root",
     "setup_pass": "password",
     "users": {
@@ -24,18 +22,10 @@
         }
     },
     "network": {
-        "name": "nssk-database-network",
         "listen_ip": "192.168.my.ip",
         "listen_port": 23306,
         "local_network": "192.168.%.%",
         "container_network": "9.9.1.%",
-        "container_subnet": "9.9.1.0/24",
-        "container_gateway": "9.9.1.1",
         "wan_network": "%"
-    },
-    "resources": {
-        "cpu_count": 2,
-        "memory": "2.5g",
-        "memory_swap": "5g"
     }
 }

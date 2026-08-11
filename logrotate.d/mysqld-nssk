@@ -10,7 +10,7 @@
 	# Rotate the log if it exceeds 1MB in size
 	size 1M
 
-	# Keep 10 archived logs
+	# Keep 20 archived logs
 	rotate 20
 
 	# Compress old log files (e.g., trim.log.1.gz)
@@ -24,4 +24,18 @@
 
 	# Create a new log file with specific permissions (owner: mysql, group: mysql)
 	create 640 mysql mysql
+
+	# Run postrotate once total, not once per file in this stanza
+	sharedscripts
+
+	# mysqld keeps its original file descriptors open across the rename `create`
+	# does above, so without this it silently keeps writing into the rotated-away
+	# (and, once compressed, corrupted) file instead of the new one at the old path.
+	postrotate
+		if test -x /usr/bin/mysqladmin && \
+		   /usr/bin/mysqladmin --defaults-extra-file=/run/mysql-healthcheck.cnf ping &>/dev/null
+		then
+			/usr/bin/mysqladmin --defaults-extra-file=/run/mysql-healthcheck.cnf flush-logs
+		fi
+	endscript
 }

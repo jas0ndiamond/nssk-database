@@ -1,0 +1,11 @@
+# Runtime state - never referenced by the Dockerfile, and files here can end up
+# owned by the in-container mysql UID, which can break the build context sender.
+mysql/data/
+mysql/log/
+
+.git/
+.gitignore
+venv/
+.idea/
+setup/conf/*.json
+backup/

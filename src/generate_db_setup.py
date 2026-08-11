@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import secrets
 import sys
 from pathlib import Path
 from string import Template
@@ -56,6 +57,14 @@ NSSK_USER = "nssk"
 NSSK_IMPORT_USER = "nssk_import"
 NSSK_BACKUP_USER = "nssk_backup"
 NSSK_ADMIN_USER = "nssk_admin"
+
+# Dedicated, no-privilege, auto-generated user for the container HEALTHCHECK.
+# Deliberately not config-driven (no config.json entry, no GRANTs beyond USAGE):
+# it only ever needs to authenticate over loopback TCP to prove mysqld is actually
+# serving, and using root or a config-driven user (e.g. nssk_admin) either doesn't
+# have a 127.0.0.1 grant at all (root - verified) or depends on the deployer's
+# local_network happening to be 127.0.0.1 (not guaranteed - e.g. the LAN template).
+HEALTHCHECK_USER = "healthcheck"
 
 ALLOWED_EXTERNAL_PRIVILEGES = [
     "SELECT",
@@ -157,6 +166,7 @@ create_cnv_hydrometric_tables_scriptfile = "%s/8_create_cnv_hydrometric_tables.s
 create_rainfall_interval_data_tables_scriptfile = "%s/9_create_rainfall_interval_data_tables.sql" % scriptfile_target_dir
 
 create_mysql_root_cred_file = "%s/mysql.txt" % scriptfile_target_dir
+create_healthcheck_cred_file = "%s/healthcheck.txt" % scriptfile_target_dir
 
 #####################
 
@@ -194,6 +204,14 @@ def write_setup_scripts():
     print("\tWriting user setup script to %s" % create_users_scriptfile)
     with open(create_users_scriptfile, 'w') as handle:
         handle.writelines("%s\n" % line for line in user_setup_statements)
+    # Deliberately 644, not 600: this file is bind-mounted into /docker-entrypoint-
+    # initdb.d and read by mysql-server's docker-entrypoint.sh *after* it has already
+    # dropped from root to the (differently-numbered) in-container "mysql" uid, which
+    # a plain bind mount does not remap to the host uid that owns this file. 600 here
+    # makes the read fail silently as a permission error and internal users never get
+    # created - verified empirically. It still contains plaintext passwords, so the
+    # containing directory (gitignored, not the file mode) is the real boundary here.
+    os.chmod(create_users_scriptfile, 0o644)
 
     print("\tWriting NSSK CoSMo table setup script to %s" % create_nssk_cosmo_tables_scriptfile)
     with open(create_nssk_cosmo_tables_scriptfile, 'w') as handle:
@@ -262,8 +280,29 @@ def create_root_pw_file():
     with open(create_mysql_root_cred_file, 'w') as handle:
         handle.writelines("%s\n" % config[DB_SETUP_USER_PASS_KEY])
 
+    # docker compose (outside Swarm mode) bind-mounts secrets `file:` sources as-is
+    # and silently ignores any `mode`/`uid`/`gid` set in docker-compose.yml, so the
+    # permissions on this host-side file are what actually protects it in the
+    # running container.
+    os.chmod(create_mysql_root_cred_file, 0o600)
+
     # no longer need password in memory
     config[DB_SETUP_USER_PASS_KEY] = None
+
+
+def configure_healthcheck_user():
+    password = secrets.token_urlsafe(24)
+
+    # no GRANTs beyond the implicit USAGE - mysqladmin ping only needs to
+    # authenticate, not read/write anything
+    user_setup_statements.append("-- Healthcheck User Creation +++++++++++++++++++++")
+    user_setup_statements.append(generate_user_create_statement(HEALTHCHECK_USER, "127.0.0.1", password))
+
+    print("\tWriting healthcheck password file to %s" % create_healthcheck_cred_file)
+    with open(create_healthcheck_cred_file, 'w') as handle:
+        handle.writelines("%s\n" % password)
+
+    os.chmod(create_healthcheck_cred_file, 0o600)
 
 
 # Create the databases used by the project by running the "create_databases.sql" script.
@@ -281,7 +320,9 @@ def create_databases():
     db_setup_statements.append("DROP TABLE mysql.help_topic, mysql.help_category, mysql.help_relation, mysql.help_keyword;")
 
 def generate_user_create_statement(user, network, secret):
-    #TODO use REQUIRE SSL when certs are configured
+    # TLS is enforced globally instead (require_secure_transport=ON in
+    # mysql/conf.d/nssk.cnf), applying uniformly to every account with no
+    # per-user exceptions, rather than a per-CREATE-USER REQUIRE SSL clause here.
 
     # new hashing method
     return "CREATE USER '%s'@'%s' IDENTIFIED WITH caching_sha2_password BY '%s';" % (
@@ -679,6 +720,7 @@ def main(args):
     print("Creating NSSK users")
     configure_internal_users()
     configure_external_users()
+    configure_healthcheck_user()
     extended_user_setup()
     print("NSSK users created")
 

@@ -41,6 +41,17 @@ if [ $RESULT -ne 0 ]; then
 fi
 
 ##################################
+# check if we have mysql (used to discover the database list to back up)
+
+which mysql > /dev/null
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+  echo "Could not find mysql on PATH. Please install mysql. Exiting..."
+  exit 1
+fi
+
+##################################
 # parameter check
 
 if [ -z "$BACKUP_DIR" ]; then
@@ -83,27 +94,42 @@ if [[ -z $PASS ]]; then
   exit 1
 fi
 
-# create directory if it doesn't exist
-if [ ! -d "$BACKUP_DIR" ]; then
-  mkdir -p "$BACKUP_DIR"
+# short-lived credentials file so the password never appears on the mysqldump command
+# line (and thus never shows up in `ps` output). Removed on exit regardless of outcome.
+CRED_FILE="$(mktemp)"
+trap 'rm -f "$CRED_FILE"' EXIT
+chmod 600 "$CRED_FILE"
+{
+  echo "[client]"
+  echo "user=$USER"
+  echo "password=$PASS"
+} > "$CRED_FILE"
 
-  if [ ! -d "$BACKUP_DIR" ]; then
-    echo "Failed to create backup directory. Exiting"
-    exit 1
-  fi
+TIMESTAMP=$(date +"%Y-%m-%d_%H%M%S")
+DUMP_FILE=$BACKUP_DIR/nssk_database_backup_"$TIMESTAMP".sql
+
+# Discovered, not hardcoded, so this doesn't drift from the actual database list
+# in src/generate_db_setup.py as datasets are added/removed. Deliberately NOT
+# --all-databases: that would include the mysql system schema, and nssk_backup
+# has no privileges there anyway. It wouldn't help even if granted - MySQL 8's
+# mysql.* tables live in a reserved tablespace and cannot be recreated via a
+# plain CREATE TABLE/mysqldump replay, so that data could never actually be
+# restored (verified: a restore attempt fails with "may not be created in the
+# reserved tablespace 'mysql'" regardless of the restoring user's privileges).
+DB_LIST="$(mysql --defaults-extra-file="$CRED_FILE" -h "$HOST" -P "$PORT" -N -e "SHOW DATABASES;" | grep -vE '^(information_schema|performance_schema|mysql|sys)$')"
+
+if [[ -z "$DB_LIST" ]]; then
+  echo "Could not determine database list to back up"
+  exit 1
 fi
 
-TIMESTAMP=$(date +"%Y-%m-%d_%H%m%S")
-DUMP_FILE=$BACKUP_DIR/nssk_database_backup_"$TIMESTAMP".sql
-#DUMP_SYSTEM_FILE=$BACKUP_DIR/nssk_dump_system_"$TIMESTAMP".sql
-
 echo "Dumping NSSK database tables to $DUMP_FILE"
+# shellcheck disable=SC2086
 mysqldump\
- -u $USER\
+ --defaults-extra-file="$CRED_FILE"\
  -P "$PORT"\
  -h "$HOST"\
- --password="$PASS"\
- --all-databases > "$DUMP_FILE"
+ --databases $DB_LIST > "$DUMP_FILE"
 
 result=$?
 if [ $result -eq 0 ]; then
@@ -120,4 +146,3 @@ else
 fi
 
 exit 0
-
