@@ -1,6 +1,6 @@
 CREATE TABLE $SITE (
 	MeasurementTimestamp DATETIME,
-	FlowReading DECIMAL(12,8)
+	FlowReading DOUBLE
 );
 
 ALTER TABLE $SITE ADD UNIQUE measurement (MeasurementTimestamp);

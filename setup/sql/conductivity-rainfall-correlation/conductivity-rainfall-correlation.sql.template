@@ -1,7 +1,7 @@
 CREATE TABLE $MONITORING_LOCATION_ID (
 	CosmoTimeStamp DATETIME,
-	Conductance DECIMAL(7,3),
-	RainfallAmount DECIMAL(6,3)
+	Conductance DOUBLE,
+	RainfallAmount DOUBLE
 );
 
 ALTER TABLE $MONITORING_LOCATION_ID ADD UNIQUE cosmotimestamp (CosmoTimeStamp);

@@ -1,9 +1,9 @@
 CREATE TABLE $SITE (
 	MeasurementTimestamp DATETIME NOT NULL,
-	AirTemperature DECIMAL(9,7) NULL,
-	BarometricPressure DECIMAL(10,5) NULL,
-	HourlyRainfall DECIMAL(6,3) NULL,
-	Rainfall DECIMAL(6,3)
+	AirTemperature DOUBLE NULL,
+	BarometricPressure DOUBLE NULL,
+	HourlyRainfall DOUBLE NULL,
+	Rainfall DOUBLE
 );
 
 ALTER TABLE $SITE ADD UNIQUE measurement (MeasurementTimestamp);

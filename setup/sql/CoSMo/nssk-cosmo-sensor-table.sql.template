@@ -24,7 +24,7 @@ CREATE TABLE $MONITORING_LOCATION_ID (
 	CharacteristicName varchar(255),
 	MethodSpeciation varchar(255),
 	ResultSampleFraction varchar(255),
-	ResultValue FLOAT,
+	ResultValue DOUBLE,
 	ResultUnit varchar(255),
 	ResultValueType varchar(255),
 	ResultDetectionCondition varchar(255),
