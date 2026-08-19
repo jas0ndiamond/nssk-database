@@ -12,6 +12,20 @@ services:
     init: true
     security_opt:
       - no-new-privileges:true
+    # Verified minimal set for mysqld+rsyslogd+cron+logrotate on this image (see
+    # SECURITY.md): CHOWN/FOWNER/DAC_OVERRIDE for the entrypoint's data-dir/socket
+    # chown and logrotate's create-as-mysql, SETUID/SETGID for docker-entrypoint.sh's
+    # gosu drop from root to the mysql user. Confirmed unneeded: FSETID and every
+    # other capability in Docker's default set (NET_RAW, NET_BIND_SERVICE,
+    # SYS_CHROOT, KILL, MKNOD, AUDIT_WRITE, SETPCAP, SETFCAP).
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETUID
+      - SETGID
     ports:
       - "${DB_LISTEN_IP:-127.0.0.1}:${DB_LISTEN_PORT:-23306}:3306"
     cpus: "${CPU_COUNT:-2}"
